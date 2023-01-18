@@ -10,11 +10,12 @@ from models import (
     ResponseMenuModel, ResponseSubmenuModel, ResponseDishModel,
     UpdateMenuModel, UpdateSubmenuModel, UpdateDishModel
 )
-from db_models import (
-    Sessions, Menu, Submenu, Dish,
-    create_tables, delete_tables, get_menu_item,
+from db_utils import (
+    Sessions, create_tables,
+    delete_tables, get_menu_item,
     get_submenu_item, get_dish_item
 )
+from db_models import Menu, Submenu, Dish
 
 
 app = FastAPI()
