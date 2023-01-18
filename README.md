@@ -4,7 +4,7 @@
 
 ### Запуск:
 
-1. Склонировать репозиторий Github по ссылке https://github.com/EugeneDlg/ylab_menus.git
+1. Склонировать репозиторий Github проекта по ссылке https://github.com/EugeneDlg/ylab_menus.git и перейти в папку проекта
 2. Устновить pipenv посредством команды pip install pipenv
 3. Активировать среду окружения посредством pipenv shell
 4. Установить зависимости посредством pipenv install
