@@ -41,7 +41,6 @@ target_metadata = Base.metadata
 def get_db_conn_URL():
     test = os.getenv("TEST_MODE", None)
     url_string = TEST_DB_CONN_STRING if int(test) else DB_CONN_STRING
-    print("get_db_conn_URL", url_string.replace("+psycopg2", ""))
     return url_string.replace("+psycopg2", "")
 
 

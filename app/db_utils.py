@@ -7,7 +7,6 @@ from sqlalchemy.orm import sessionmaker, Session, relationship, backref
 from app.db_models import Base, Menu, Submenu, Dish
 
 load_dotenv(".env")
-print("finddot", os.getenv("DB_HOST"))
 DB_USER = os.getenv("DB_USER")
 DB_PASSWORD = os.getenv("DB_PASSWORD")
 DB_HOST = os.getenv("DB_HOST")
