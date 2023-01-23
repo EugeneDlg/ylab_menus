@@ -1,0 +1,38 @@
+version: "3.8"
+services:
+  app:
+    container_name: "resto-app"
+    build:
+      context: .
+    env_file:
+      - .env
+    entrypoint: >
+      sh -c "
+        python -m alembic upgrade head
+        python app/main.py
+      "
+    networks:
+      - resto_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+  db:
+    container_name: "resto-db"
+    image: postgres:15-alpine
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-postgres}
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+    networks:
+      - resto_network
+networks:
+  resto_network:
+    driver: bridge
