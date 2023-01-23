@@ -6,17 +6,17 @@ from sqlalchemy import func, distinct
 import uvicorn
 import sys
 
-from app.models import (
+from models import (
     MenuModel, SubmenuModel, DishModel,
     ResponseMenuModel, ResponseSubmenuModel, ResponseDishModel,
     UpdateMenuModel, UpdateSubmenuModel, UpdateDishModel
 )
-from app.db_utils import (
+from db_utils import (
     Sessions, create_tables, clean_tables,
     delete_tables, get_menu_item,
     get_submenu_item, get_dish_item
 )
-from app.db_models import Menu, Submenu, Dish
+from db_models import Menu, Submenu, Dish
 
 
 app = FastAPI()
