@@ -9,6 +9,9 @@ sqlalchemy = "*"
 uvicorn = "*"
 psycopg2-binary = "*"
 python-dotenv = "*"
+alembic = "*"
+pytest = "*"
+httpx = "*"
 
 [dev-packages]
 
