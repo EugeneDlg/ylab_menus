@@ -4,7 +4,7 @@ from dotenv import load_dotenv, find_dotenv
 from sqlalchemy import create_engine, func, distinct
 from sqlalchemy.orm import sessionmaker, Session, relationship, backref
 
-from db_models import Base, Menu, Submenu, Dish
+from app.db_models import Base, Menu, Submenu, Dish
 
 load_dotenv(".env")
 DB_USER = os.getenv("DB_USER")

@@ -26,7 +26,7 @@ ENV PATH="/.venv/bin:$PATH"
 EXPOSE 5432
 
 # Install application into container
-WORKDIR /app
+WORKDIR /application
 COPY . .
 
 # Run the application

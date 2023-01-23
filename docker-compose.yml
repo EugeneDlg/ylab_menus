@@ -6,6 +6,8 @@ services:
       context: .
     env_file:
       - .env
+    environment:
+      - TEST_MODE=0
     entrypoint: >
       sh -c "
         python -m alembic upgrade head
