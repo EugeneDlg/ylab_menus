@@ -17,15 +17,18 @@ def get_session_():
         session.close()
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def test_db():
     Base.metadata.create_all(bind=engine)
+    print("test_db_create")
     yield
     Base.metadata.drop_all(bind=engine)
+    print("test_db_delete")
 
 
 @pytest.fixture(scope='module')
 def client():
+    print("client")
     app.dependency_overrides[get_session] = get_session_
     client = TestClient(app=app)
     yield client

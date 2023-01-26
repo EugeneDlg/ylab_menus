@@ -26,6 +26,14 @@ engine = create_engine(DB_CONN_STRING, echo=True)
 Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 
 
+def get_session():
+    session = Sessions()
+    try:
+        yield session
+    finally:
+        session.close()
+
+
 def create_tables():
     return Base.metadata.create_all(engine)
 
