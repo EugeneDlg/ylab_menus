@@ -47,26 +47,3 @@ def clean_tables():
         conn.execute("TRUNCATE TABLE menu CASCADE;")
 
 
-def get_menu_item(menu_id: int, db: Session):
-    menu = db.query(Menu, func.count(distinct(Submenu.id)), func.count(Dish.id)
-                    ).join(Submenu, Menu.id == Submenu.menu_id, isouter=True
-                           ).join(Dish, Submenu.id == Dish.submenu_id, isouter=True
-                                  ).filter(Menu.id == menu_id).group_by(Menu.id).first()
-
-    return menu
-
-
-def get_submenu_item(menu_id: int, submenu_id: int, db: Session):
-    submenu = db.query(Submenu, func.count(Dish.id)
-                       ).join(Dish, Dish.submenu_id == Submenu.id, isouter=True
-                              ).filter(Submenu.menu_id == menu_id, Submenu.id == submenu_id
-                                       ).group_by(Submenu.id).first()
-    return submenu
-
-
-def get_dish_item(menu_id: int, submenu_id: int, dish_id: int, db: Session):
-    dish = db.query(Dish).join(Submenu, Submenu.id == Dish.submenu_id
-                               ).filter(Dish.id == dish_id,
-                                        Submenu.id == submenu_id,
-                                        Submenu.menu_id == menu_id).first()
-    return dish

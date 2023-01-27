@@ -15,12 +15,12 @@ class ResponseBaseRestaurantModel(BaseRestaurantModel):
 
 
 class ResponseMenuModel(ResponseBaseRestaurantModel):
-    submenus_count: Optional[int] = 0
-    dishes_count: Optional[int] = 0
+    submenus_count: int = 0
+    dishes_count: int = 0
 
 
 class ResponseSubmenuModel(ResponseBaseRestaurantModel):
-    dishes_count: Optional[int] = 0
+    dishes_count: int = 0
 
 
 class ResponseDishModel(ResponseBaseRestaurantModel):

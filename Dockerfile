@@ -1,4 +1,4 @@
-FROM python:3.8-slim as base
+FROM python:3.10-slim as base
 
 # Setup env
 ENV LANG C.UTF-8
@@ -11,7 +11,7 @@ ENV PYTHONPATH .
 FROM base AS python-deps
 
 RUN pip install pipenv
-RUN apt-get update && apt-get install -y --no-install-recommends gcc
+RUN apt-get update
 
 COPY Pipfile .
 COPY Pipfile.lock .
@@ -29,6 +29,3 @@ EXPOSE 5432
 # Install application into container
 WORKDIR /application
 COPY . .
-
-# Run the application
-#ENTRYPOINT ["python", "main.py"]
