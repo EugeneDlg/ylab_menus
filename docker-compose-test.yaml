@@ -1,0 +1,60 @@
+version: "3.8"
+services:
+  test_app:
+    container_name: "test-app"
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      - TEST_MODE=1
+    entrypoint: >
+      sh -c 'pytest -vv'
+    networks:
+      - resto_test_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      test_db:
+        condition: service_healthy
+      cache:
+        contition: servive_healthy
+  test_db:
+    container_name: "test-resto-db"
+    image: postgres:15-alpine
+    restart: always
+    environment:
+      - POSTGRES_USER=${TEST_DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${TEST_DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${TEST_DB_NAME:-postgres}
+      - SQLALCHEMY_SILENCE_UBER_WARNING=1
+    expose:
+      - "${DB_PORT}"
+    networks:
+      - resto_test_network
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${TEST_DB_NAME} -U ${TEST_DB_USER}"]
+      interval: 5s
+      timeout: 20s
+      retries: 100
+  cache:
+    container_name: "resto-cache"
+    image: redis:7-alpine
+    environment:
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    networks:
+      - resto_test_network
+    expose:
+      - "${REDIS_PORT}"
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 20s
+      retries: 100
+networks:
+  resto_test_network:
+    driver: bridge

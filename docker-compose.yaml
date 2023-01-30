@@ -1,0 +1,64 @@
+version: "3.8"
+services:
+  app:
+    container_name: "resto-app"
+    build:
+      context: .
+    env_file:
+      - .env
+    environment:
+      - TEST_MODE=0
+    entrypoint: >
+      sh -c "
+        python -m alembic upgrade head
+        python app/main.py
+      "
+    networks:
+      - resto_network
+    ports:
+      - "8000:8000"
+    depends_on:
+      db:
+        condition: service_healthy
+      cache:
+        condition: service_healthy
+  db:
+    container_name: "resto-db"
+    image: postgres:15-alpine
+    restart: always
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_USER=${DB_USER:-postgres}
+      - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
+      - POSTGRES_DB=${DB_NAME:-postgres}
+    expose:
+      - "${DB_PORT}"
+    ports:
+      - "${DB_PORT}:${DB_PORT}"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${DB_NAME} -U ${DB_USER}"]
+      interval: 5s
+      timeout: 20s
+      retries: 100
+    networks:
+      - resto_network
+  cache:
+    container_name: "resto-cache"
+    image: redis:7-alpine
+    environment:
+      - REDIS_PORT=${REDIS_PORT:-6379}
+    networks:
+      - resto_network
+    expose:
+      - "${REDIS_PORT}"
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 20s
+      retries: 100
+networks:
+  resto_network:
+    driver: bridge
