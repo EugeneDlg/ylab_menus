@@ -26,7 +26,8 @@ class Database:
     def get_menu(self, menu_id: int) -> Menu:
         session = self.session
         menu = session.query(
-            Menu, func.count(distinct(Submenu.id)), func.count(Dish.id))\
+            Menu, func.count(distinct(Submenu.id)), func.count(Dish.id),
+        )\
             .join(Submenu, Menu.id == Submenu.menu_id, isouter=True)\
             .join(Dish, Submenu.id == Dish.submenu_id, isouter=True)\
             .filter(Menu.id == menu_id).group_by(Menu.id).first()
@@ -36,11 +37,11 @@ class Database:
     def get_menu_list(self) -> List[Menu]:
         session = self.session
         menus = session.query(
-            Menu, func.count(distinct(Submenu.id)), func.count(Dish.id)
+            Menu, func.count(distinct(Submenu.id)), func.count(Dish.id),
         ).join(
-            Submenu, Menu.id == Submenu.menu_id, isouter=True
+            Submenu, Menu.id == Submenu.menu_id, isouter=True,
         ).join(
-            Dish, Submenu.id == Dish.submenu_id, isouter=True
+            Dish, Submenu.id == Dish.submenu_id, isouter=True,
         ).group_by(Menu.id).all()
         return menus
 
@@ -80,22 +81,22 @@ class Database:
 
     def get_submenu(self, menu_id: int, submenu_id: int):
         submenu = self.session.query(
-            Submenu, func.count(Dish.id)
+            Submenu, func.count(Dish.id),
         ).join(
-            Dish, Dish.submenu_id == Submenu.id, isouter=True
+            Dish, Dish.submenu_id == Submenu.id, isouter=True,
         ).filter(
-            Submenu.menu_id == menu_id, Submenu.id == submenu_id
+            Submenu.menu_id == menu_id, Submenu.id == submenu_id,
         ).group_by(Submenu.id).first()
         return submenu
 
     def get_submenu_list(self, menu_id: int):
         session = self.session
         submenu_list = session.query(
-            Submenu, func.count(Dish.id)
+            Submenu, func.count(Dish.id),
         ).join(
-            Dish, Dish.submenu_id == Submenu.id, isouter=True
+            Dish, Dish.submenu_id == Submenu.id, isouter=True,
         ).filter(
-            Submenu.menu_id == menu_id
+            Submenu.menu_id == menu_id,
         ).group_by(Submenu.id).all()
         return submenu_list
 
@@ -135,25 +136,27 @@ class Database:
 
     def get_dish(self, menu_id: int, submenu_id: int, dish_id: int):
         dish = self.session.query(Dish).join(
-            Submenu, Submenu.id == Dish.submenu_id
+            Submenu, Submenu.id == Dish.submenu_id,
         ).filter(
             Dish.id == dish_id,
             Submenu.id == submenu_id,
-            Submenu.menu_id == menu_id
+            Submenu.menu_id == menu_id,
         ).first()
         return dish
 
     def get_dish_list(self, menu_id: int, submenu_id: int):
         dish_list = self.session.query(Dish).join(
-            Submenu, Submenu.id == Dish.submenu_id
+            Submenu, Submenu.id == Dish.submenu_id,
         ).filter(
             Submenu.id == submenu_id,
-            Submenu.menu_id == menu_id
+            Submenu.menu_id == menu_id,
         ).all()
         return dish_list
 
-    def update_dish(self, menu_id: int, submenu_id: int,
-                    dish_id: int, dish: dict):
+    def update_dish(
+        self, menu_id: int, submenu_id: int,
+        dish_id: int, dish: dict,
+    ):
         session = self.session
         dish_ = self.get_dish(menu_id, submenu_id, dish_id)
         if dish_ is not None:
