@@ -6,12 +6,12 @@
 #### При помощи docker:
 1. Склонировать репозиторий Github проекта по ссылке https://github.com/EugeneDlg/ylab_menus.git и перейти в папку проекта
 2. Переименовать файл .env.example в .env
-3. В корневой папке проекта дать команду docker-compose up --build
+3. В корневой папке проекта дать команду ```docker-compose up --build```
 
 
 ### Запуск тестов:
 Тесты запускаются командой в корневой папке проекта:
-docker-compose -f docker-compose-test.yml up --build
+```docker-compose -f docker-compose-test.yaml up --build```
 
 ### Тестирование
 #### Тестирование в Postman
@@ -21,6 +21,7 @@ docker-compose -f docker-compose-test.yml up --build
 
 ### Документация
 Документация OpenAPI доступна по ссылке http://127.0.0.1:8000/api/openapi
+
 Документация Redoc доступна по ссылке http://127.0.0.1:8000/api/redoc
 
 ### Описание задачи проекта:
