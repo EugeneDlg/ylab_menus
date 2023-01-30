@@ -130,3 +130,8 @@ dmypy.json
 
 # local .env file for dev
 .env_local
+alembic.ini_
+docker-compose-0.yml
+docker-compose-test-0.yml
+env.py_
+

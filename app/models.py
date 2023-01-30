@@ -57,4 +57,3 @@ class UpdateSubmenuModel(UpdateRestaurantModel):
 
 class UpdateDishModel(UpdateRestaurantModel):
     price: Optional[float]
-
