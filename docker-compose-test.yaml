@@ -18,7 +18,7 @@ services:
       test_db:
         condition: service_healthy
       cache:
-        contition: servive_healthy
+        condition: servive_healthy
   test_db:
     container_name: "test-resto-db"
     image: postgres:15-alpine
