@@ -1,6 +1,8 @@
-import redis
 from json import dumps, loads
+
+import redis
 from fastapi.encoders import jsonable_encoder
+
 from app.config import REDIS_URL
 
 cache = redis.from_url(url=REDIS_URL, encoding='utf-8', decode_responses=True)

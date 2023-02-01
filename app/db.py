@@ -1,10 +1,10 @@
 from typing import List
-from sqlalchemy import create_engine, func, distinct
+
+from sqlalchemy import create_engine, distinct, func, text
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy import text
+
 from app.config import DB_CONN_STRING
-from app.db_models import Menu, Submenu, Dish
-from app.db_models import Base
+from app.db_models import Base, Dish, Menu, Submenu
 
 engine = create_engine(DB_CONN_STRING, echo=True)
 Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)

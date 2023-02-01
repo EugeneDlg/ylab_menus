@@ -2,10 +2,12 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
-from app.main import app
-from app.db import get_session
+
 from app.config import TEST_DB_CONN_STRING
+from app.db import get_session
 from app.db_models import Base
+from app.main import app
+
 engine = create_engine(TEST_DB_CONN_STRING, echo=True)
 Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
 

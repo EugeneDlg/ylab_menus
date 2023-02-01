@@ -2,7 +2,6 @@ import os
 
 from dotenv import load_dotenv
 
-
 load_dotenv(".env")
 TEST_MODE = os.getenv("TEST_MODE")
 DB_USER = os.getenv("DB_USER")

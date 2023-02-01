@@ -1,7 +1,7 @@
-from app.db import Database, get_session
 from fastapi import Depends
 
-from app.cache import get_cache, set_cache, delete_cache
+from app.cache import delete_cache, get_cache, set_cache
+from app.db import Database, get_session
 
 
 class Service:

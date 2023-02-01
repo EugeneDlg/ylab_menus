@@ -1,9 +1,10 @@
+import uvicorn
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
-import uvicorn
 
 from app.cache import clean_cache
 from app.router import router
+
 # from app.db import (
 #     clean_tables, delete_tables, create_tables
 # )

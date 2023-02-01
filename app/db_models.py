@@ -1,7 +1,7 @@
-from sqlalchemy.orm import declarative_base
-from sqlalchemy import Column, ForeignKey, Integer, String, Numeric
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, relationship
+from sqlalchemy import (Column, ForeignKey, Integer, Numeric, String,
+                        create_engine)
+from sqlalchemy.orm import declarative_base, relationship, sessionmaker
+
 from app.config import DB_CONN_STRING
 
 engine = create_engine(DB_CONN_STRING, echo=True)

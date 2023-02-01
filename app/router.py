@@ -1,10 +1,10 @@
-from fastapi import APIRouter, status, HTTPException, Depends
-from app.models import (
-    MenuModel, SubmenuModel, DishModel,
-    ResponseMenuModel, ResponseSubmenuModel, ResponseDishModel,
-    UpdateMenuModel, UpdateSubmenuModel, UpdateDishModel,
-)
 from typing import List
+
+from fastapi import APIRouter, Depends, HTTPException, status
+
+from app.models import (DishModel, MenuModel, ResponseDishModel,
+                        ResponseMenuModel, ResponseSubmenuModel, SubmenuModel,
+                        UpdateDishModel, UpdateMenuModel, UpdateSubmenuModel)
 from app.service import Service, get_service
 
 router = APIRouter()
