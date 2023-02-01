@@ -134,3 +134,4 @@ alembic.ini_
 docker-compose-0.yml
 docker-compose-test-0.yml
 env.py_
+.pre-commit-config_.yaml
