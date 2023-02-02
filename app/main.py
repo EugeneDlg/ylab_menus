@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 import uvicorn
 
-from app.cache import clean_cache
+from cache import Cache, get_cache_session
 from app.router import router
 # from app.db import (
 #     clean_tables, delete_tables, create_tables
@@ -27,8 +27,8 @@ app.include_router(router=router, prefix='/api/v1/menus')
 
 @app.on_event("shutdown")
 def on_shutdown():
-    clean_cache()
     # delete_tables()
+    Cache(next(get_cache_session())).clean_cache()
 
 
 @app.get("/")
