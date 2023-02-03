@@ -17,11 +17,11 @@ router = APIRouter()
     summary="Add a new menu",
     tags=["menu"],
 )
-def add_menu(
+async def add_menu(
         menu: MenuModel,
         service: Service = Depends(get_service),
 ) -> ResponseMenuModel:
-    menu = service.add_menu(menu.dict())
+    menu = await service.add_menu(menu.dict())
     return menu
 
 
@@ -32,11 +32,11 @@ def add_menu(
     summary="Get a certain menu",
     tags=["menu"],
 )
-def get_menu(
+async def get_menu(
         menu_id: int,
         service: Service = Depends(get_service),
 ) -> ResponseMenuModel:
-    menu = service.get_menu(menu_id)
+    menu = await service.get_menu(menu_id)
     if is_ok(menu, "menu"):
         return menu
 
@@ -48,10 +48,10 @@ def get_menu(
     summary="Get a list of all menus",
     tags=["menu"],
 )
-def get_menu_list(
+async def get_menu_list(
         service: Service = Depends(get_service),
 ) -> List[ResponseMenuModel]:
-    menu_list = service.get_menu_list()
+    menu_list = await service.get_menu_list()
     return menu_list
 
 
@@ -62,11 +62,11 @@ def get_menu_list(
     summary="Edit a menu",
     tags=["menu"],
 )
-def update_menu(
+async def update_menu(
         menu_id: int, menu: UpdateMenuModel,
         service: Service = Depends(get_service),
 ) -> ResponseMenuModel:
-    menu = service.update_menu(menu_id, menu.dict())
+    menu = await service.update_menu(menu_id, menu.dict())
     if is_ok(menu, "menu"):
         return menu
 
@@ -77,11 +77,11 @@ def update_menu(
     summary="Delete a menu",
     tags=["menu"],
 )
-def delete_menu(
+async def delete_menu(
         menu_id: int,
         service: Service = Depends(get_service),
 ) -> dict:
-    response = service.delete_menu(menu_id)
+    response = await service.delete_menu(menu_id)
     if is_ok(response, "menu"):
         return {"status": True, "message": "The menu has been deleted"}
 
@@ -93,11 +93,11 @@ def delete_menu(
     summary="Create a new submenu",
     tags=["submenu"],
 )
-def add_submenu(
+async def add_submenu(
         menu_id: int, submenu: SubmenuModel,
         service: Service = Depends(get_service),
 ) -> ResponseSubmenuModel:
-    submenu = service.add_submenu(menu_id, submenu.dict())
+    submenu = await service.add_submenu(menu_id, submenu.dict())
     if is_ok(submenu, "menu"):
         return submenu
 
@@ -109,12 +109,12 @@ def add_submenu(
     summary="Get a certain submenu",
     tags=["submenu"],
 )
-def get_submenu(
+async def get_submenu(
         menu_id: int,
         submenu_id: int,
         service: Service = Depends(get_service),
 ) -> ResponseMenuModel:
-    submenu = service.get_submenu(menu_id, submenu_id)
+    submenu = await service.get_submenu(menu_id, submenu_id)
     if is_ok(submenu, "submenu"):
         return submenu
 
@@ -126,11 +126,11 @@ def get_submenu(
     summary="Get a list of all submenus within a certain menu",
     tags=["submenu"],
 )
-def get_submenu_list(
+async def get_submenu_list(
         menu_id: int,
         service: Service = Depends(get_service),
 ) -> List[ResponseSubmenuModel]:
-    submenu_list = service.get_submenu_list(menu_id)
+    submenu_list = await service.get_submenu_list(menu_id)
     return submenu_list
 
 
@@ -141,13 +141,13 @@ def get_submenu_list(
     summary="Edit a submenu",
     tags=["submenu"],
 )
-def update_submenu(
+async def update_submenu(
         menu_id: int,
         submenu_id: int,
         submenu: UpdateSubmenuModel,
         service: Service = Depends(get_service),
 ) -> ResponseSubmenuModel:
-    submenu = service.update_submenu(menu_id, submenu_id, submenu.dict())
+    submenu = await service.update_submenu(menu_id, submenu_id, submenu.dict())
     if is_ok(submenu, "submenu"):
         return submenu
 
@@ -158,12 +158,12 @@ def update_submenu(
     summary="Delete a submenu",
     tags=["submenu"],
 )
-def delete_submenu(
+async def delete_submenu(
         menu_id: int,
         submenu_id: int,
         service: Service = Depends(get_service),
 ) -> dict:
-    response = service.delete_submenu(menu_id, submenu_id)
+    response = await service.delete_submenu(menu_id, submenu_id)
     if is_ok(response, "submenu"):
         return {"status": True, "message": "The submenu has been deleted"}
 
@@ -175,13 +175,13 @@ def delete_submenu(
     summary="Create a new dish",
     tags=["dish"],
 )
-def add_dish(
+async def add_dish(
         menu_id: int,
         submenu_id: int,
         dish: DishModel,
         service: Service = Depends(get_service),
 ) -> ResponseDishModel:
-    dish = service.add_dish(menu_id, submenu_id, dish.dict())
+    dish = await service.add_dish(menu_id, submenu_id, dish.dict())
     if is_ok(dish, "submenu"):
         return dish
 
@@ -193,13 +193,13 @@ def add_dish(
     summary="Get a certain dish",
     tags=["dish"],
 )
-def get_dish(
+async def get_dish(
         menu_id: int,
         submenu_id: int,
         dish_id: int,
         service: Service = Depends(get_service),
 ) -> ResponseDishModel:
-    dish = service.get_dish(menu_id, submenu_id, dish_id)
+    dish = await service.get_dish(menu_id, submenu_id, dish_id)
     if is_ok(dish, "dish"):
         return dish
 
@@ -211,12 +211,12 @@ def get_dish(
     summary="Get a list of all dishes with a certain submenu",
     tags=["dish"],
 )
-def get_dish_list(
+async def get_dish_list(
         menu_id: int,
         submenu_id: int,
         service: Service = Depends(get_service),
 ) -> List[ResponseDishModel]:
-    dish_list = service.get_dish_list(menu_id, submenu_id)
+    dish_list = await service.get_dish_list(menu_id, submenu_id)
     return dish_list
 
 
@@ -227,14 +227,14 @@ def get_dish_list(
     summary="Edit a dish",
     tags=["dish"],
 )
-def update_dish(
+async def update_dish(
         menu_id: int,
         submenu_id: int,
         dish_id: int,
         dish: UpdateDishModel,
         service: Service = Depends(get_service),
 ) -> ResponseDishModel:
-    dish = service.update_dish(menu_id, submenu_id, dish_id, dish.dict())
+    dish = await service.update_dish(menu_id, submenu_id, dish_id, dish.dict())
     if is_ok(dish, "dish"):
         return dish
 
@@ -245,13 +245,13 @@ def update_dish(
     summary="Delete a dish",
     tags=["dish"],
 )
-def delete_dish(
+async def delete_dish(
         menu_id: int,
         submenu_id: int,
         dish_id: int,
         service: Service = Depends(get_service),
 ) -> dict:
-    response = service.delete_dish(menu_id, submenu_id, dish_id)
+    response = await service.delete_dish(menu_id, submenu_id, dish_id)
     if is_ok(response, "dish"):
         return {"status": True, "message": "The dish has been deleted"}
 

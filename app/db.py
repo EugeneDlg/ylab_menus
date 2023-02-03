@@ -1,29 +1,54 @@
 from typing import List
+from collections.abc import AsyncGenerator
 from sqlalchemy import create_engine, func, distinct
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import text
+
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine
+from sqlalchemy import select, update
+
 from app.config import DB_CONN_STRING
 from app.db_models import Menu, Submenu, Dish
 from app.db_models import Base
 
-engine = create_engine(DB_CONN_STRING, echo=True)
-Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-engine = create_engine(DB_CONN_STRING, echo=True)
-Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+# engine = create_engine(DB_CONN_STRING, echo=True)
+# Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
+engine = create_async_engine(
+    DB_CONN_STRING,
+    echo=True,
+)
+
+Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=AsyncSession)
+# def get_session():
+#     session = Sessions()
+#     try:
+#         yield session
+#     finally:
+#         session.close()
+
+
+async def get_session() -> AsyncGenerator:
+    """Gets the db-session for dependency injection."""
+    try:
+        session: AsyncSession = Sessions()
+        yield session
+    finally:
+        await session.close()
 
 
 class Database:
     def __init__(self, session):
         self.session = session
 
-    def add_menu(self, menu: dict) -> Menu:
+    async def add_menu(self, menu: dict) -> Menu:
         menu = Menu(**menu)
         self.session.add(menu)
-        self.session.commit()
-        self.session.refresh(menu)
+        await self.session.commit()
+        await self.session.refresh(menu)
         return menu
 
-    def get_menu(self, menu_id: int) -> Menu:
+    async def get_menu(self, menu_id: int) -> Menu:
         session = self.session
         menu = session.query(
             Menu, func.count(distinct(Submenu.id)), func.count(Dish.id),
@@ -34,18 +59,18 @@ class Database:
 
         return menu
 
-    def get_menu_list(self) -> List[Menu]:
+    async def get_menu_list(self) -> List[Menu]:
         session = self.session
-        menus = session.query(
-            Menu, func.count(distinct(Submenu.id)), func.count(Dish.id),
+        breakpoint()
+        menus = await session.execute(select(Menu, func.count(distinct(Submenu.id)), func.count(Dish.id)
         ).join(
             Submenu, Menu.id == Submenu.menu_id, isouter=True,
         ).join(
             Dish, Submenu.id == Dish.submenu_id, isouter=True,
-        ).group_by(Menu.id).all()
+        ).group_by(Menu.id))
         return menus
 
-    def update_menu(self, menu_id: int, menu: dict) -> Menu:
+    async def update_menu(self, menu_id: int, menu: dict) -> Menu:
         session = self.session
         menu_t = self.get_menu(menu_id)
         if menu_t is not None:
@@ -55,31 +80,31 @@ class Database:
             menu_.description = menu["description"] if menu["description"] \
                 else menu_.description
             session.add(menu_)
-            session.commit()
-            session.refresh(menu_)
+            await session.commit()
+            await session.refresh(menu_)
             return menu_
 
-    def delete_menu(self, menu_id: int):
+    async def delete_menu(self, menu_id: int):
         session = self.session
-        menu_t = self.get_menu(menu_id)
+        menu_t = await self.get_menu(menu_id)
         if menu_t is not None:
             menu = menu_t[0]
             session.delete(menu)
-            session.commit()
+            await session.commit()
             return True
 
-    def add_submenu(self, menu_id: int, submenu: dict):
+    async def add_submenu(self, menu_id: int, submenu: dict):
         session = self.session
-        menu_t = self.get_menu(menu_id)
+        menu_t = await self.get_menu(menu_id)
         if menu_t is not None:
             menu = menu_t[0]
             submenu = Submenu(**submenu)
             menu.submenu.append(submenu)
-            session.commit()
-            session.refresh(submenu)
+            await session.commit()
+            await session.refresh(submenu)
             return submenu
 
-    def get_submenu(self, menu_id: int, submenu_id: int):
+    async def get_submenu(self, menu_id: int, submenu_id: int):
         submenu = self.session.query(
             Submenu, func.count(Dish.id),
         ).join(
@@ -89,7 +114,7 @@ class Database:
         ).group_by(Submenu.id).first()
         return submenu
 
-    def get_submenu_list(self, menu_id: int):
+    async def get_submenu_list(self, menu_id: int):
         session = self.session
         submenu_list = session.query(
             Submenu, func.count(Dish.id),
@@ -100,9 +125,9 @@ class Database:
         ).group_by(Submenu.id).all()
         return submenu_list
 
-    def update_submenu(self, menu_id, submenu_id, submenu: dict):
+    async def update_submenu(self, menu_id, submenu_id, submenu: dict):
         session = self.session
-        submenu_t = self.get_submenu(menu_id, submenu_id)
+        submenu_t = await self.get_submenu(menu_id, submenu_id)
         if submenu_t is not None:
             submenu_ = submenu_t[0]
             submenu_.title = submenu["title"] \
@@ -110,31 +135,31 @@ class Database:
             submenu_.description = submenu["description"] \
                 if submenu["description"] else submenu_.description
             session.add(submenu_)
-            session.commit()
-            session.refresh(submenu_)
+            await session.commit()
+            await session.refresh(submenu_)
             return submenu_
 
-    def delete_submenu(self, menu_id, submenu_id):
+    async def delete_submenu(self, menu_id, submenu_id):
         session = self.session
-        submenu_t = self.get_submenu(menu_id, submenu_id)
+        submenu_t = await self.get_submenu(menu_id, submenu_id)
         if submenu_t is not None:
             submenu = submenu_t[0]
-            session.delete(submenu)
-            session.commit()
+            await session.delete(submenu)
+            await session.commit()
             return True
 
-    def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
+    async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
         session = self.session
-        submenu_t = self.get_submenu(menu_id, submenu_id)
+        submenu_t = await self.get_submenu(menu_id, submenu_id)
         if submenu_t is not None:
             submenu = submenu_t[0]
             dish = Dish(**dish, submenu_id=submenu_id)
             submenu.dish.append(dish)
-            session.commit()
-            session.refresh(dish)
+            await session.commit()
+            await session.refresh(dish)
             return dish
 
-    def get_dish(self, menu_id: int, submenu_id: int, dish_id: int):
+    async def get_dish(self, menu_id: int, submenu_id: int, dish_id: int):
         dish = self.session.query(Dish).join(
             Submenu, Submenu.id == Dish.submenu_id,
         ).filter(
@@ -144,7 +169,7 @@ class Database:
         ).first()
         return dish
 
-    def get_dish_list(self, menu_id: int, submenu_id: int):
+    async def get_dish_list(self, menu_id: int, submenu_id: int):
         dish_list = self.session.query(Dish).join(
             Submenu, Submenu.id == Dish.submenu_id,
         ).filter(
@@ -153,12 +178,12 @@ class Database:
         ).all()
         return dish_list
 
-    def update_dish(
+    async def update_dish(
         self, menu_id: int, submenu_id: int,
         dish_id: int, dish: dict,
     ):
         session = self.session
-        dish_ = self.get_dish(menu_id, submenu_id, dish_id)
+        dish_ = await self.get_dish(menu_id, submenu_id, dish_id)
         if dish_ is not None:
             dish_.title = dish["title"] \
                 if dish["title"] else dish_.title
@@ -167,36 +192,28 @@ class Database:
             dish_.price = dish["price"] \
                 if dish["price"] else dish_.price
             session.add(dish_)
-            session.commit()
-            session.refresh(dish_)
+            await session.commit()
+            await session.refresh(dish_)
             return dish_
 
-    def delete_dish(self, menu_id: int, submenu_id: int, dish_id: int):
+    async def delete_dish(self, menu_id: int, submenu_id: int, dish_id: int):
         session = self.session
-        dish = self.get_dish(menu_id, submenu_id, dish_id)
+        dish = await self.get_dish(menu_id, submenu_id, dish_id)
         if dish is not None:
             session.delete(dish)
-            session.commit()
+            await session.commit()
             return True
 
 
-def get_session():
-    session = Sessions()
-    try:
-        yield session
-    finally:
-        session.close()
+async def create_tables():
+    return await Base.metadata.create_all(engine)
 
 
-def create_tables():
-    return Base.metadata.create_all(engine)
+async def delete_tables():
+    return await Base.metadata.drop_all(engine)
 
 
-def delete_tables():
-    return Base.metadata.drop_all(engine)
-
-
-def clean_tables():
-    with engine.connect() as conn:
-        conn.execute(text("TRUNCATE TABLE menu CASCADE;"))
-        conn.commit()
+async def clean_tables():
+    async with engine.connect() as conn:
+        await conn.execute(text("TRUNCATE TABLE menu CASCADE;"))
+        await conn.commit()

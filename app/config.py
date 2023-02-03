@@ -2,7 +2,6 @@ import os
 
 from dotenv import load_dotenv
 
-
 load_dotenv(".env")
 TEST_MODE = os.getenv("TEST_MODE")
 DB_USER = os.getenv("DB_USER")
@@ -14,7 +13,8 @@ TEST_DB_HOST = os.getenv("TEST_DB_HOST")
 TEST_DB_NAME = os.getenv("TEST_DB_NAME")
 TEST_DB_USER = os.getenv("TEST_DB_USER")
 TEST_DB_PASSWORD = os.getenv("TEST_DB_PASSWORD")
-DB_CONN_STRING_PRE = "postgresql+psycopg2"
+# DB_CONN_STRING_PRE = "postgresql+psycopg2"
+DB_CONN_STRING_PRE = "postgresql+asyncpg"
 DB_CONN_STRING = f"{DB_CONN_STRING_PRE}://{DB_USER}:{DB_PASSWORD}@" \
                  f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
 TEST_DB_CONN_STRING = f"{DB_CONN_STRING_PRE}://{TEST_DB_USER}:" \

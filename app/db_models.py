@@ -1,11 +1,8 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy import Column, ForeignKey, Integer, String, Numeric
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, relationship
-from app.config import DB_CONN_STRING
+from sqlalchemy.orm import relationship
 
-engine = create_engine(DB_CONN_STRING, echo=True)
-Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
+
 Base = declarative_base()
 
 

@@ -21,18 +21,18 @@ app.include_router(router=router, prefix='/api/v1/menus')
 
 
 # @app.on_event("startup")
-# def startup():
+# async def startup():
 #     create_tables()
 
 
 @app.on_event("shutdown")
-def on_shutdown():
-    clean_cache()
+async def on_shutdown():
+    await clean_cache()
     # delete_tables()
 
 
 @app.get("/")
-def homepage():
+async def homepage():
     return JSONResponse({'message': 'This is a restaurant menu system'})
 
 
