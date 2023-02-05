@@ -1,7 +1,7 @@
-from app.db import Database, get_session
 from fastapi import Depends
 
-from app.cache import get_cache, set_cache, delete_cache
+from app.cache import delete_cache, get_cache, set_cache
+from app.db import Database, get_session
 
 
 class Service:
@@ -40,7 +40,7 @@ class Service:
         return menu
 
     async def delete_menu(self, menu_id: int):
-        response = Database(self.session).delete_menu(menu_id)
+        response = await Database(self.session).delete_menu(menu_id)
         await delete_cache("list::")
         # delete_cache(f"{menu_id}::")
         await delete_cache(f"{menu_id}:", True)
@@ -101,14 +101,16 @@ class Service:
         dish = await get_cache(f"{menu_id}:{submenu_id}:{dish_id}")
         if dish is None:
             dish = await Database(self.session).get_dish(menu_id, submenu_id, dish_id)
-            await set_cache(f"{menu_id}:{submenu_id}:{dish_id}", dish)
+            if dish is not None:
+                await set_cache(f"{menu_id}:{submenu_id}:{dish_id}", dish)
         return dish
 
     async def get_dish_list(self, menu_id, submenu_id):
         dish_list = await get_cache(f"{menu_id}:{submenu_id}:list")
         if dish_list is None:
             dish_list = await Database(self.session).get_dish_list(menu_id, submenu_id)
-            await set_cache(f"{menu_id}:{submenu_id}:list:", dish_list)
+            if dish_list is not None:
+                await set_cache(f"{menu_id}:{submenu_id}:list:", dish_list)
         return dish_list
 
     async def update_dish(self, menu_id: int, submenu_id, dish_id: int, dish: dict):

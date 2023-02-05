@@ -1,13 +1,10 @@
+import uvicorn
 from fastapi import FastAPI
 from starlette.responses import JSONResponse
-import uvicorn
 
 from app.cache import clean_cache
+from app.db import clean_tables
 from app.router import router
-# from app.db import (
-#     clean_tables, delete_tables, create_tables
-# )
-
 
 app = FastAPI(
     title="Restaurant menu service",
@@ -22,13 +19,14 @@ app.include_router(router=router, prefix='/api/v1/menus')
 
 # @app.on_event("startup")
 # async def startup():
-#     create_tables()
+#     await create_tables()
 
 
 @app.on_event("shutdown")
 async def on_shutdown():
     await clean_cache()
-    # delete_tables()
+    await clean_tables()
+    # await delete_tables()
 
 
 @app.get("/")

@@ -26,3 +26,5 @@ REDIS_DB = int(os.getenv("REDIS_DB", 0))
 CACHE_EXPIRE_IN_SECONDS: int = int(os.getenv("CACHE_EXPIRE_IN_SECONDS", 600))
 
 REDIS_URL = f"redis://{REDIS_HOST}:{REDIS_PORT}/{REDIS_DB}"
+
+print("!!!")

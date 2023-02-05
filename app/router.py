@@ -1,10 +1,16 @@
-from fastapi import APIRouter, status, HTTPException, Depends
+from fastapi import APIRouter, Depends, HTTPException, status
+
 from app.models import (
-    MenuModel, SubmenuModel, DishModel,
-    ResponseMenuModel, ResponseSubmenuModel, ResponseDishModel,
-    UpdateMenuModel, UpdateSubmenuModel, UpdateDishModel,
+    DishModel,
+    MenuModel,
+    ResponseDishModel,
+    ResponseMenuModel,
+    ResponseSubmenuModel,
+    SubmenuModel,
+    UpdateDishModel,
+    UpdateMenuModel,
+    UpdateSubmenuModel,
 )
-from typing import List
 from app.service import Service, get_service
 
 router = APIRouter()
@@ -43,14 +49,14 @@ async def get_menu(
 
 @router.get(
     "/",
-    response_model=List[ResponseMenuModel],
+    response_model=list[ResponseMenuModel],
     status_code=status.HTTP_200_OK,
     summary="Get a list of all menus",
     tags=["menu"],
 )
 async def get_menu_list(
         service: Service = Depends(get_service),
-) -> List[ResponseMenuModel]:
+) -> list[ResponseMenuModel]:
     menu_list = await service.get_menu_list()
     return menu_list
 
@@ -121,7 +127,7 @@ async def get_submenu(
 
 @router.get(
     "/{menu_id}/submenus",
-    response_model=List[ResponseSubmenuModel],
+    response_model=list[ResponseSubmenuModel],
     status_code=status.HTTP_200_OK,
     summary="Get a list of all submenus within a certain menu",
     tags=["submenu"],
@@ -129,7 +135,7 @@ async def get_submenu(
 async def get_submenu_list(
         menu_id: int,
         service: Service = Depends(get_service),
-) -> List[ResponseSubmenuModel]:
+) -> list[ResponseSubmenuModel]:
     submenu_list = await service.get_submenu_list(menu_id)
     return submenu_list
 
@@ -206,7 +212,7 @@ async def get_dish(
 
 @router.get(
     "/{menu_id}/submenus/{submenu_id}/dishes",
-    response_model=List[ResponseDishModel],
+    response_model=list[ResponseDishModel],
     status_code=status.HTTP_200_OK,
     summary="Get a list of all dishes with a certain submenu",
     tags=["dish"],
@@ -215,7 +221,7 @@ async def get_dish_list(
         menu_id: int,
         submenu_id: int,
         service: Service = Depends(get_service),
-) -> List[ResponseDishModel]:
+) -> list[ResponseDishModel]:
     dish_list = await service.get_dish_list(menu_id, submenu_id)
     return dish_list
 

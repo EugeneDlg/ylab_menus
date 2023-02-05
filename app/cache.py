@@ -1,9 +1,10 @@
-import aioredis
 from json import dumps, loads
-from fastapi.encoders import jsonable_encoder
-from app.config import REDIS_URL
 
-# cache = redis.from_url(url=REDIS_URL, encoding='utf-8', decode_responses=True)
+import aioredis
+from fastapi.encoders import jsonable_encoder
+
+from app.envconfig import REDIS_URL
+
 cache = aioredis.from_url(url=REDIS_URL)
 
 REDIS_CACHE_TIME = 300
@@ -22,8 +23,11 @@ async def set_cache(key, value):
 async def delete_cache(key, bulk=False):
     if bulk:
         prefix = key
-        for key in cache.scan_iter(f"{prefix}*"):
-            await cache.delete(key)
+        cur = b'0'  # set initial cursor to 0
+        while cur:
+            cur, keys = await cache.scan(cur, match=f"{prefix}*")
+            for key in keys:
+                await cache.delete(key)
     else:
         await cache.delete(key)
 
