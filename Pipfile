@@ -15,6 +15,15 @@ redis = "*"
 pre-commit = "*"
 flake8 = "*"
 python-dotenv = "*"
+aioredis = "*"
+asyncpg = "*"
+isort = "*"
+pytest-asyncio = "*"
+celery = "*"
+aiofiles = "*"
+openpyxl = "*"
+amqp = "*"
+xlsxwriter = "*"
 
 [dev-packages]
 

@@ -4,8 +4,8 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from app.config import DB_CONN_STRING, TEST_DB_CONN_STRING
 from app.db_models import Base
+from app.envconfig import DB_CONN_STRING, TEST_DB_CONN_STRING
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -39,7 +39,8 @@ target_metadata = Base.metadata
 def get_db_conn_URL():
     test = os.getenv("TEST_MODE", None)
     url_string = TEST_DB_CONN_STRING if int(test) else DB_CONN_STRING
-    return url_string.replace("+psycopg2", "")
+    url_string = url_string.replace("+psycopg2", "").replace("+asyncpg", "")
+    return url_string
 
 
 def run_migrations_offline() -> None:

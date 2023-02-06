@@ -3,12 +3,8 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
 from app.cache import clean_cache
+from app.db import clean_tables
 from app.router import router
-
-# from app.db import (
-#     clean_tables, delete_tables, create_tables
-# )
-
 
 app = FastAPI(
     title="Restaurant menu service",
@@ -22,18 +18,19 @@ app.include_router(router=router, prefix='/api/v1/menus')
 
 
 # @app.on_event("startup")
-# def startup():
-#     create_tables()
+# async def startup():
+#     await create_tables()
 
 
 @app.on_event("shutdown")
-def on_shutdown():
-    clean_cache()
-    # delete_tables()
+async def on_shutdown():
+    await clean_cache()
+    await clean_tables()
+    # await delete_tables()
 
 
 @app.get("/")
-def homepage():
+async def homepage():
     return JSONResponse({'message': 'This is a restaurant menu system'})
 
 
