@@ -18,14 +18,6 @@ engine = create_async_engine(
 Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=AsyncSession)
 
 
-# def get_session():
-#     session = Sessions()
-#     try:
-#         yield session
-#     finally:
-#         session.close()
-
-
 async def get_session() -> AsyncGenerator:
     """Gets the db-session for dependency injection."""
     try:
@@ -222,6 +214,42 @@ class Database:
             await session.delete(dish)
             await session.commit()
             return True
+
+    async def create_menu_structure(self, data: list[dict]):
+        for menu_ in data:
+            menu_dict = {"title": menu_["title"],
+                         "description": menu_["description"]}
+            new_menu = await self.add_menu(menu_dict)
+            new_menu_id = int(new_menu.id)
+            for submenu_ in menu_["submenus"]:
+                submenu_dict = {"title": submenu_["title"],
+                                "description": submenu_["description"]}
+                new_submenu = await self.add_submenu(new_menu_id, submenu_dict)
+                new_submenu_id = int(new_submenu.id)
+                for dish_ in submenu_["dishes"]:
+                    dish_dict = {
+                        "title": dish_["title"],
+                        "description": dish_["description"],
+                        "price": dish_["price"],
+                    }
+                    await self.add_dish(new_menu_id, new_submenu_id, dish_dict)
+        return None
+
+    async def get_all_items(self):
+        items = await self.session.execute(
+            select(Menu, Submenu, Dish)
+            .join(
+                Submenu,
+                Menu.id == Submenu.menu_id,
+                isouter=True,
+            )
+            .join(
+                Dish,
+                Submenu.id == Dish.submenu_id,
+                isouter=True,
+            )
+        )
+        return items.all()
 
 
 async def create_tables():

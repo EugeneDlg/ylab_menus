@@ -1,5 +1,9 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+import os
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.responses import FileResponse
+
+from app.envconfig import BASE_DIR, BASE_URL
 from app.models import (
     DishModel,
     MenuModel,
@@ -260,6 +264,65 @@ async def delete_dish(
     response = await service.delete_dish(menu_id, submenu_id, dish_id)
     if is_ok(response, "dish"):
         return {"status": True, "message": "The dish has been deleted"}
+
+
+@router.post(
+    "/make-xlsx-file",
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Download menu to Excel document",
+    tags=["Excel"],
+)
+async def make_xlsx_file(service: Service = Depends(get_service)):
+    task_id = await service.make_xlsx_file()
+    return {"status": True, "message": f"Task has been created with task_id {task_id}"}
+
+
+@router.get(
+    "/get-xlsx-file/{task_id}",
+    status_code=status.HTTP_200_OK,
+    summary="Display Excel file generation status",
+    tags=["Excel"],
+)
+async def get_xlsx_status(task_id: str, service: Service = Depends(get_service)):
+    result = await service.get_xlsx_file_status(task_id)
+    if result.ready():
+        return {
+            "status": True,
+            "message": f"Link for downloading: "
+                       f"{BASE_URL}/api/v1/menus/download/{task_id}",
+        }
+    return {
+        "status": True,
+        "message": f"Generating file is in progress. Please wait."
+                   f" Now state is {result.state}",
+    }
+
+
+@router.get(
+    path="/download/{filename}",
+    status_code=status.HTTP_200_OK,
+    summary="Download file by filename",
+    response_class=FileResponse,
+    tags=["Excel"],
+)
+async def download_file(filename: str):
+    headers = {"Content-Disposition": "attachment; filename=menu.xlsx"}
+    return FileResponse(
+        path=os.path.join(BASE_DIR, "data", f"{filename}.xlsx"),
+        media_type="multipart/form-data",
+        headers=headers
+    )
+
+
+@router.post(
+    path="/generate_file",
+    status_code=status.HTTP_200_OK,
+    summary="Read json file with test menu structure and populate the database",
+    tags=["excel"],
+)
+async def read_and_populate(service: Service = Depends(get_service)):
+    await service.read_and_populate()
+    return {"status": True, "message": "The database has been populated"}
 
 
 def is_ok(item, name):

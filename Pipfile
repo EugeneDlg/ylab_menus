@@ -19,6 +19,11 @@ aioredis = "*"
 asyncpg = "*"
 isort = "*"
 pytest-asyncio = "*"
+celery = "*"
+aiofiles = "*"
+openpyxl = "*"
+amqp = "*"
+xlsxwriter = "*"
 
 [dev-packages]
 

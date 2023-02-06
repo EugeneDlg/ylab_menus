@@ -1,7 +1,16 @@
+import json
+
+import aiofiles  # type: ignore
+from celery import Celery
+from celery.result import AsyncResult
 from fastapi import Depends
+from fastapi.encoders import jsonable_encoder
 
 from app.cache import delete_cache, get_cache, set_cache
 from app.db import Database, get_session
+from app.envconfig import RABBITMQ_URL
+
+celery_app = Celery("tasks", broker=RABBITMQ_URL, backend="rpc://")
 
 
 class Service:
@@ -130,6 +139,25 @@ class Service:
         await delete_cache(f"{menu_id}:{submenu_id}:{dish_id}")
         await delete_cache(f"{menu_id}:{submenu_id}:list")
         return response
+
+    async def read_and_populate(self):
+        async with aiofiles.open("test_menu.json", mode="r") as f:
+            content = await f.read()
+        all_structure = json.loads(content)
+        await Database(self.session).create_menu_structure(all_structure)
+
+    async def make_xlsx_file(self):
+        menu_list = await Database(self.session).get_all_items()
+        menu_data = jsonable_encoder(menu_list)
+        result = celery_app.send_task(
+            "tasks.generate_xlsx_file", kwargs={"data": menu_data}
+        )
+        return result.id
+
+    @staticmethod
+    async def get_xlsx_file_status(task_id: str) -> AsyncResult:
+        result = celery_app.AsyncResult(id=task_id, app=celery_app)
+        return result
 
 
 async def get_service(session: Database = Depends(get_session)):

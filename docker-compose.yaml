@@ -1,4 +1,6 @@
 version: "3.8"
+volumes:
+  celery-data:
 services:
   app:
     container_name: "resto-app"
@@ -15,6 +17,8 @@ services:
       "
     networks:
       - resto_network
+    volumes:
+      - celery-data:/usr/src/app/data
     ports:
       - "8000:8000"
     depends_on:
@@ -22,6 +26,41 @@ services:
         condition: service_healthy
       cache:
         condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+  celery:
+    container_name: "celery"
+    build:
+      context: .
+      dockerfile: ./app/celery/Dockerfile
+    command: celery -A tasks worker --loglevel=INFO --pool=solo
+    env_file:
+      - .env
+    volumes:
+      - celery-data:/celery/data
+    networks:
+      - resto_network
+  depends_on:
+      rabbitmq:
+        condition: service_healthy
+  rabbitmq:
+    image: rabbitmq:3.11-management-alpine
+    container_name: "rabbitmq"
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    env_file:
+      - .env
+    environment:
+      - RABBITMQ_DEFAULT_USER=${RABBITMQ_USER:-admin}
+      - RABBITMQ_DEFAULT_PASS=${RABBITMQ_PASS:-password}
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 30s
+      timeout: 30s
+      retries: 3
+    networks:
+      - resto_network
   db:
     container_name: "resto-db"
     image: postgres:15-alpine
@@ -33,16 +72,16 @@ services:
       - POSTGRES_PASSWORD=${DB_PASSWORD:-postgres}
       - POSTGRES_DB=${DB_NAME:-postgres}
     expose:
-      - "${DB_PORT}"
+      - "5432"
     ports:
-      - "${DB_PORT}:${DB_PORT}"
+      - "5432:5432"
+    networks:
+      - resto_network
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${DB_NAME} -U ${DB_USER}"]
       interval: 5s
       timeout: 20s
       retries: 100
-    networks:
-      - resto_network
   cache:
     container_name: "resto-cache"
     image: redis:7-alpine
