@@ -3,11 +3,9 @@ from json import dumps, loads
 import aioredis
 from fastapi.encoders import jsonable_encoder
 
-from app.envconfig import REDIS_URL
+from app.envconfig import REDIS_CACHE_TIME, REDIS_URL
 
 cache = aioredis.from_url(url=REDIS_URL)
-
-REDIS_CACHE_TIME = 300
 
 
 async def get_cache(key):

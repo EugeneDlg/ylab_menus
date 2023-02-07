@@ -17,11 +17,6 @@ app = FastAPI(
 app.include_router(router=router, prefix='/api/v1/menus')
 
 
-# @app.on_event("startup")
-# async def startup():
-#     await create_tables()
-
-
 @app.on_event("shutdown")
 async def on_shutdown():
     await clean_cache()

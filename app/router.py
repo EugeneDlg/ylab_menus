@@ -15,7 +15,16 @@ from app.models import (
     UpdateMenuModel,
     UpdateSubmenuModel,
 )
-from app.service import Service, get_service
+from app.service import (
+    DishService,
+    FileReportService,
+    MenuService,
+    SubmenuService,
+    get_dish_service,
+    get_menu_service,
+    get_report_service,
+    get_submenu_service,
+)
 
 router = APIRouter()
 
@@ -29,7 +38,7 @@ router = APIRouter()
 )
 async def add_menu(
         menu: MenuModel,
-        service: Service = Depends(get_service),
+        service: MenuService = Depends(get_menu_service),
 ) -> ResponseMenuModel:
     menu = await service.add_menu(menu.dict())
     return menu
@@ -44,7 +53,7 @@ async def add_menu(
 )
 async def get_menu(
         menu_id: int,
-        service: Service = Depends(get_service),
+        service: MenuService = Depends(get_menu_service),
 ) -> ResponseMenuModel:
     menu = await service.get_menu(menu_id)
     if is_ok(menu, "menu"):
@@ -59,7 +68,7 @@ async def get_menu(
     tags=["menu"],
 )
 async def get_menu_list(
-        service: Service = Depends(get_service),
+        service: MenuService = Depends(get_menu_service),
 ) -> list[ResponseMenuModel]:
     menu_list = await service.get_menu_list()
     return menu_list
@@ -74,7 +83,7 @@ async def get_menu_list(
 )
 async def update_menu(
         menu_id: int, menu: UpdateMenuModel,
-        service: Service = Depends(get_service),
+        service: MenuService = Depends(get_menu_service),
 ) -> ResponseMenuModel:
     menu = await service.update_menu(menu_id, menu.dict())
     if is_ok(menu, "menu"):
@@ -89,7 +98,7 @@ async def update_menu(
 )
 async def delete_menu(
         menu_id: int,
-        service: Service = Depends(get_service),
+        service: MenuService = Depends(get_menu_service),
 ) -> dict:
     response = await service.delete_menu(menu_id)
     if is_ok(response, "menu"):
@@ -105,7 +114,7 @@ async def delete_menu(
 )
 async def add_submenu(
         menu_id: int, submenu: SubmenuModel,
-        service: Service = Depends(get_service),
+        service: SubmenuService = Depends(get_submenu_service),
 ) -> ResponseSubmenuModel:
     submenu = await service.add_submenu(menu_id, submenu.dict())
     if is_ok(submenu, "menu"):
@@ -122,7 +131,7 @@ async def add_submenu(
 async def get_submenu(
         menu_id: int,
         submenu_id: int,
-        service: Service = Depends(get_service),
+        service: SubmenuService = Depends(get_submenu_service),
 ) -> ResponseMenuModel:
     submenu = await service.get_submenu(menu_id, submenu_id)
     if is_ok(submenu, "submenu"):
@@ -138,7 +147,7 @@ async def get_submenu(
 )
 async def get_submenu_list(
         menu_id: int,
-        service: Service = Depends(get_service),
+        service: SubmenuService = Depends(get_submenu_service),
 ) -> list[ResponseSubmenuModel]:
     submenu_list = await service.get_submenu_list(menu_id)
     return submenu_list
@@ -155,7 +164,7 @@ async def update_submenu(
         menu_id: int,
         submenu_id: int,
         submenu: UpdateSubmenuModel,
-        service: Service = Depends(get_service),
+        service: SubmenuService = Depends(get_submenu_service),
 ) -> ResponseSubmenuModel:
     submenu = await service.update_submenu(menu_id, submenu_id, submenu.dict())
     if is_ok(submenu, "submenu"):
@@ -171,7 +180,7 @@ async def update_submenu(
 async def delete_submenu(
         menu_id: int,
         submenu_id: int,
-        service: Service = Depends(get_service),
+        service: SubmenuService = Depends(get_submenu_service),
 ) -> dict:
     response = await service.delete_submenu(menu_id, submenu_id)
     if is_ok(response, "submenu"):
@@ -189,7 +198,7 @@ async def add_dish(
         menu_id: int,
         submenu_id: int,
         dish: DishModel,
-        service: Service = Depends(get_service),
+        service: DishService = Depends(get_dish_service),
 ) -> ResponseDishModel:
     dish = await service.add_dish(menu_id, submenu_id, dish.dict())
     if is_ok(dish, "submenu"):
@@ -207,7 +216,7 @@ async def get_dish(
         menu_id: int,
         submenu_id: int,
         dish_id: int,
-        service: Service = Depends(get_service),
+        service: DishService = Depends(get_dish_service),
 ) -> ResponseDishModel:
     dish = await service.get_dish(menu_id, submenu_id, dish_id)
     if is_ok(dish, "dish"):
@@ -224,7 +233,7 @@ async def get_dish(
 async def get_dish_list(
         menu_id: int,
         submenu_id: int,
-        service: Service = Depends(get_service),
+        service: DishService = Depends(get_dish_service),
 ) -> list[ResponseDishModel]:
     dish_list = await service.get_dish_list(menu_id, submenu_id)
     return dish_list
@@ -242,7 +251,7 @@ async def update_dish(
         submenu_id: int,
         dish_id: int,
         dish: UpdateDishModel,
-        service: Service = Depends(get_service),
+        service: DishService = Depends(get_dish_service),
 ) -> ResponseDishModel:
     dish = await service.update_dish(menu_id, submenu_id, dish_id, dish.dict())
     if is_ok(dish, "dish"):
@@ -259,7 +268,7 @@ async def delete_dish(
         menu_id: int,
         submenu_id: int,
         dish_id: int,
-        service: Service = Depends(get_service),
+        service: DishService = Depends(get_dish_service),
 ) -> dict:
     response = await service.delete_dish(menu_id, submenu_id, dish_id)
     if is_ok(response, "dish"):
@@ -272,7 +281,9 @@ async def delete_dish(
     summary="Read json file with test menu structure and populate the database",
     tags=["excel"],
 )
-async def read_and_populate(service: Service = Depends(get_service)):
+async def read_and_populate(
+        service: FileReportService = Depends(get_report_service)
+):
     await service.read_and_populate()
     return {"status": True, "message": "The database has been populated"}
 
@@ -283,7 +294,9 @@ async def read_and_populate(service: Service = Depends(get_service)):
     summary="Download menu to Excel document",
     tags=["Excel"],
 )
-async def make_xlsx_file(service: Service = Depends(get_service)):
+async def make_xlsx_file(
+        service: FileReportService = Depends(get_report_service)
+):
     task_id = await service.make_xlsx_file()
     return {"status": True, "message": f"Task has been created with task_id {task_id}"}
 
@@ -294,7 +307,9 @@ async def make_xlsx_file(service: Service = Depends(get_service)):
     summary="Display Excel file generation status",
     tags=["Excel"],
 )
-async def get_xlsx_status(task_id: str, service: Service = Depends(get_service)):
+async def get_xlsx_status(
+        task_id: str, service: FileReportService = Depends(get_report_service)
+):
     result = await service.get_xlsx_file_status(task_id)
     if result.ready():
         return {

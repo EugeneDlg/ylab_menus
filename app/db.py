@@ -7,19 +7,20 @@ from sqlalchemy.orm import sessionmaker
 from app.db_models import Base, Dish, Menu, Submenu
 from app.envconfig import DB_CONN_STRING
 
-# engine = create_engine(DB_CONN_STRING, echo=True)
-# Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False)
-
 engine = create_async_engine(
     DB_CONN_STRING,
     echo=True,
 )
 
-Sessions = sessionmaker(bind=engine, autocommit=False, autoflush=False, class_=AsyncSession)
+Sessions = sessionmaker(
+    bind=engine,
+    autocommit=False,
+    autoflush=False,
+    class_=AsyncSession,
+)
 
 
 async def get_session() -> AsyncGenerator:
-    """Gets the db-session for dependency injection."""
     try:
         session: AsyncSession = Sessions()
         yield session
@@ -96,7 +97,7 @@ class SubmenuDB:
 
     async def add_submenu(self, menu_id: int, submenu: dict):
         session = self.session
-        menu_t = await self.get_menu(menu_id)
+        menu_t = await MenuDB(session).get_menu(menu_id)
 
         if menu_t is not None:
             # menu = menu_t[0]
@@ -165,7 +166,7 @@ class DishDB:
 
     async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
         session = self.session
-        submenu_t = await self.get_submenu(menu_id, submenu_id)
+        submenu_t = await SubmenuDB(session).get_submenu(menu_id, submenu_id)
         if submenu_t is not None:
             # submenu = submenu_t[0]
             dish = Dish(**dish, submenu_id=submenu_id)
@@ -231,15 +232,20 @@ class FileReportDB:
         self.session = session
 
     async def create_menu_structure(self, data: list[dict]):
+        session = self.session
         for menu_ in data:
             menu_dict = {"title": menu_["title"],
                          "description": menu_["description"]}
-            new_menu = await self.add_menu(menu_dict)
+            new_menu = await MenuDB(session).add_menu(
+                menu_dict
+            )
             new_menu_id = int(new_menu.id)
             for submenu_ in menu_["submenus"]:
                 submenu_dict = {"title": submenu_["title"],
                                 "description": submenu_["description"]}
-                new_submenu = await self.add_submenu(new_menu_id, submenu_dict)
+                new_submenu = await SubmenuDB(session).add_submenu(
+                    new_menu_id, submenu_dict
+                )
                 new_submenu_id = int(new_submenu.id)
                 for dish_ in submenu_["dishes"]:
                     dish_dict = {
@@ -247,7 +253,9 @@ class FileReportDB:
                         "description": dish_["description"],
                         "price": dish_["price"],
                     }
-                    await self.add_dish(new_menu_id, new_submenu_id, dish_dict)
+                    await DishDB(session).add_dish(
+                        new_menu_id, new_submenu_id, dish_dict
+                    )
         return None
 
     async def get_all_items(self):
