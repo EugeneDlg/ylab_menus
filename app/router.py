@@ -267,6 +267,17 @@ async def delete_dish(
 
 
 @router.post(
+    path="/generate_file",
+    status_code=status.HTTP_200_OK,
+    summary="Read json file with test menu structure and populate the database",
+    tags=["excel"],
+)
+async def read_and_populate(service: Service = Depends(get_service)):
+    await service.read_and_populate()
+    return {"status": True, "message": "The database has been populated"}
+
+
+@router.post(
     "/make-xlsx-file",
     status_code=status.HTTP_202_ACCEPTED,
     summary="Download menu to Excel document",
@@ -289,7 +300,7 @@ async def get_xlsx_status(task_id: str, service: Service = Depends(get_service))
         return {
             "status": True,
             "message": f"Link for downloading: "
-                       f"{BASE_URL}/api/v1/menus/download/{task_id}",
+                       f"{BASE_URL}/api/v1/menus/download/{result.result['file_name']}",
         }
     return {
         "status": True,
@@ -306,23 +317,12 @@ async def get_xlsx_status(task_id: str, service: Service = Depends(get_service))
     tags=["Excel"],
 )
 async def download_file(filename: str):
-    headers = {"Content-Disposition": "attachment; filename=menu.xlsx"}
+    headers = {"Content-Disposition": f"attachment; filename={filename}"}
     return FileResponse(
-        path=os.path.join(BASE_DIR, "data", f"{filename}.xlsx"),
+        path=os.path.join(BASE_DIR, "data", f"{filename}"),
         media_type="multipart/form-data",
         headers=headers
     )
-
-
-@router.post(
-    path="/generate_file",
-    status_code=status.HTTP_200_OK,
-    summary="Read json file with test menu structure and populate the database",
-    tags=["excel"],
-)
-async def read_and_populate(service: Service = Depends(get_service)):
-    await service.read_and_populate()
-    return {"status": True, "message": "The database has been populated"}
 
 
 def is_ok(item, name):

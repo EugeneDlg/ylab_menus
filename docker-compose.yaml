@@ -40,7 +40,7 @@ services:
       - celery-data:/celery/data
     networks:
       - resto_network
-  depends_on:
+    depends_on:
       rabbitmq:
         condition: service_healthy
   rabbitmq:

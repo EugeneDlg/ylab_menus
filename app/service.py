@@ -1,16 +1,14 @@
 import json
 
 import aiofiles
-from celery import Celery
+from app.celery.tasks import celery_app
 from celery.result import AsyncResult
 from fastapi import Depends
-from fastapi.encoders import jsonable_encoder
 
 from app.cache import delete_cache, get_cache, set_cache
 from app.db import Database, get_session
 from app.envconfig import RABBITMQ_URL
-
-celery_app = Celery("tasks", broker=RABBITMQ_URL, backend="rpc://")
+from app.celery.tasks import generate_xlsx_file
 
 
 class Service:
@@ -51,7 +49,6 @@ class Service:
     async def delete_menu(self, menu_id: int):
         response = await Database(self.session).delete_menu(menu_id)
         await delete_cache("list::")
-        # delete_cache(f"{menu_id}::")
         await delete_cache(f"{menu_id}:", True)
         return response
 
@@ -84,7 +81,6 @@ class Service:
 
     async def update_submenu(self, menu_id: int, submenu_id: int, submenu: dict):
         submenu = await Database(self.session).update_submenu(menu_id, submenu_id, submenu)
-        # delete_cache(f"list::")
         await delete_cache(f"{menu_id}:list:")
         await delete_cache(f"{menu_id}:{submenu_id}:")
         return submenu
@@ -148,11 +144,38 @@ class Service:
 
     async def make_xlsx_file(self):
         menu_list = await Database(self.session).get_all_items()
-        menu_data = jsonable_encoder(menu_list)
+        menu_data = self.serialize(menu_list)
+        generate_xlsx_file(menu_data)
         result = celery_app.send_task(
-            "tasks.generate_xlsx_file", kwargs={"data": menu_data}
+            "tasks.generate_xlsx_file", kwargs={"menu_data": menu_data}
         )
         return result.id
+
+    @staticmethod
+    def serialize(in_data):
+        all_menus = []
+        for item in in_data:
+            if item[0] is None:
+                continue
+            menu_id = item[0].id
+            if len(all_menus) == 0 or all_menus[-1]["id"] != menu_id:
+                menu = {"id": item[0].id, "title": item[0].title,
+                        "description": item[0].description, "submenus": []}
+                all_menus.append(menu)
+            if item[1] is None:
+                continue
+            submenu_id = item[1].id
+            submenu_ = all_menus[-1]["submenus"]
+            if len(submenu_) == 0 or submenu_[-1]["id"] != submenu_id:
+                submenu = {"id": item[1].id, "title": item[1].title,
+                           "description": item[1].description, "dishes": []}
+                all_menus[-1]["submenus"].append(submenu)
+            if item[2] is None:
+                continue
+            dish = {"id": item[2].id, "title": item[2].title,
+                    "description": item[2].description, "price": float(item[2].price)}
+            all_menus[-1]["submenus"][-1]["dishes"].append(dish)
+        return all_menus
 
     @staticmethod
     async def get_xlsx_file_status(task_id: str) -> AsyncResult:
@@ -175,10 +198,3 @@ def add_counts_to_submenu(submenu_t: tuple):
     submenu = submenu_t[0]
     submenu.dishes_count = submenu_t[1]
     return submenu
-
-    # @staticmethod
-    # def to_dict(obj, model):
-    #     breakpoint()
-    #     dct = {key: getattr(obj, key) if hasattr(obj, key) else 0 for key in model.__fields__.keys()}
-    #     breakpoint()
-    #     return dct
