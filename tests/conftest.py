@@ -37,34 +37,6 @@ async def get_session_():
         await session.close()
 
 
-# @pytest.fixture(scope='module')
-# def client():
-#     app.dependency_overrides[get_session] = get_session_
-#     client = TestClient(app=app)
-#     yield client
-
-
-# @pytest.fixture
-# async def create_menu_in_database(asyncpg_pool):
-#     async def create_menu_in_database(id_: str, title: str, description: str):
-#         async with asyncpg_pool.acquire() as connection:
-#             return await connection.execute(
-#                 """INSERT INTO menu VALUES ($1, $2, $3)""",
-#                 id_,
-#                 title,
-#                 description,
-#             )
-#
-#     return create_menu_in_database
-
-
-# @pytest_asyncio.fixture(scope="function", autouse=True)
-# async def clean_tables():
-#     async with engine.connect() as conn:
-#         await conn.execute(text("TRUNCATE TABLE menu CASCADE;"))
-#         await conn.commit()
-
-
 @pytest_asyncio.fixture
 async def client() -> AsyncGenerator[AsyncClient, Any]:
     app.dependency_overrides[get_session] = get_session_
