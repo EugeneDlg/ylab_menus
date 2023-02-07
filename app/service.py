@@ -11,7 +11,7 @@ from app.envconfig import RABBITMQ_URL
 from app.celery.tasks import generate_xlsx_file
 
 
-class Service:
+class MenuService:
     def __init__(self, session):
         self.session = session
 
@@ -51,6 +51,11 @@ class Service:
         await delete_cache("list::")
         await delete_cache(f"{menu_id}:", True)
         return response
+
+
+class SubmenuService:
+    def __init__(self, session):
+        self.session = session
 
     async def add_submenu(self, menu_id: int, submenu: dict):
         menu = await Database(self.session).add_submenu(menu_id, submenu)
@@ -93,6 +98,11 @@ class Service:
         await delete_cache(f"{menu_id}:list:")
         return response
 
+
+class DishService:
+    def __init__(self, session):
+        self.session = session
+
     async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
         dish = await Database(self.session).add_dish(menu_id, submenu_id, dish)
         await delete_cache("list::")
@@ -120,8 +130,6 @@ class Service:
 
     async def update_dish(self, menu_id: int, submenu_id, dish_id: int, dish: dict):
         dish = await Database(self.session).update_dish(menu_id, submenu_id, dish_id, dish)
-        # delete_cache(f"list::")
-        # delete_cache(f"{menu_id}:list:")
         await delete_cache(f"{menu_id}:{submenu_id}:list")
         await delete_cache(f"{menu_id}:{submenu_id}:{dish_id}")
         return dish
@@ -135,6 +143,11 @@ class Service:
         await delete_cache(f"{menu_id}:{submenu_id}:{dish_id}")
         await delete_cache(f"{menu_id}:{submenu_id}:list")
         return response
+
+
+class FileReportService:
+    def __init__(self, session):
+        self.session = session
 
     async def read_and_populate(self):
         async with aiofiles.open("test_menu.json", mode="r") as f:
@@ -183,8 +196,20 @@ class Service:
         return result
 
 
-async def get_service(session: Database = Depends(get_session)):
-    return Service(session)
+async def get_menu_service(session: Database = Depends(get_session)):
+    return MenuService(session)
+
+
+async def get_submenu_service(session: Database = Depends(get_session)):
+    return SubmenuService(session)
+
+
+async def get_dish_service(session: Database = Depends(get_session)):
+    return DishService(session)
+
+
+async def get_report_service(session: Database = Depends(get_session)):
+    return FileReportService(session)
 
 
 def add_counts_to_menu(menu_t: tuple):

@@ -27,7 +27,7 @@ async def get_session() -> AsyncGenerator:
         await session.close()
 
 
-class Database:
+class MenuDB:
     def __init__(self, session):
         self.session = session
 
@@ -88,6 +88,11 @@ class Database:
             await session.delete(menu)
             await session.commit()
             return True
+
+
+class SubmenuDB:
+    def __init__(self, session):
+        self.session = session
 
     async def add_submenu(self, menu_id: int, submenu: dict):
         session = self.session
@@ -153,6 +158,11 @@ class Database:
             await session.commit()
             return True
 
+
+class DishDB:
+    def __init__(self, session):
+        self.session = session
+
     async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
         session = self.session
         submenu_t = await self.get_submenu(menu_id, submenu_id)
@@ -214,6 +224,11 @@ class Database:
             await session.delete(dish)
             await session.commit()
             return True
+
+
+class FileReportDB:
+    def __init__(self, session):
+        self.session = session
 
     async def create_menu_structure(self, data: list[dict]):
         for menu_ in data:
