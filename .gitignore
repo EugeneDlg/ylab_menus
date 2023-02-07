@@ -127,7 +127,6 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-0.txt
 
 # local .env file for dev
 .env_local
