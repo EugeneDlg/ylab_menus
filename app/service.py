@@ -230,26 +230,6 @@ class FileReportService:
         return file_response
 
 
-# @router.get(
-#     path="/download/{filename}",
-#     status_code=status.HTTP_200_OK,
-#     summary="Download file by filename",
-#     response_class=FileResponse,
-#     tags=["Excel"]
-# )
-# async def download_file(filename: str):
-#     headers = {"Content-Disposition": f"attachment; filename={filename}"}
-#     try:
-#         file_response = FileResponse(
-#             path=os.path.join(BASE_DIR, "data", f"{filename}"),
-#             media_type="multipart/form-data",
-#             headers=headers
-#         )
-#     except Exception:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"File not found")
-#     return file_response
-
-
 async def get_menu_service(session: MenuDB = Depends(get_session)):
     return MenuService(session)
 
