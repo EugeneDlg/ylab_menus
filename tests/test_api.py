@@ -1,12 +1,6 @@
 import pytest
 from fastapi import status
 
-# @pytest.mark.asyncio
-# async def test_get_menu_404_0(client):
-#     response = await client.get('/api/v1/menus/1')
-#     assert response.json() == {'detail': 'menu not found'}
-#     assert response.status_code == status.HTTP_404_NOT_FOUND
-
 
 @pytest.mark.asyncio
 async def test_create_menu_0(client):

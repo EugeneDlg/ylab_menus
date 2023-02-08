@@ -56,7 +56,7 @@ async def drop_tables():
 
 
 @pytest_asyncio.fixture(scope="module", autouse=True)
-async def create_an_drop_tables():
+async def create_and_drop_tables():
     await create_tables()
     yield
     await drop_tables()

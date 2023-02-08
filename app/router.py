@@ -355,35 +355,3 @@ async def get_xlsx_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
         )
-        # return {
-        #     "status": True,
-        #     "message": f"Generating file is in progress. Please wait."
-        #                f" Now state is {result.state}",
-        # }
-
-
-# @router.get(
-#     path="/download/{filename}",
-#     status_code=status.HTTP_200_OK,
-#     summary="Download file by filename",
-#     response_class=FileResponse,
-#     tags=["Excel"]
-# )
-# async def download_file(filename: str):
-#     headers = {"Content-Disposition": f"attachment; filename={filename}"}
-#     try:
-#         file_response = FileResponse(
-#             path=os.path.join(BASE_DIR, "data", f"{filename}"),
-#             media_type="multipart/form-data",
-#             headers=headers
-#         )
-#     except Exception:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"File not found")
-#     return file_response
-
-
-# def is_ok(item, name):
-#     if item is None:
-#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"{name} not found")
-#     else:
-#         return True
