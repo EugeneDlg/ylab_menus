@@ -312,7 +312,7 @@ async def delete_dish(
     path="/populate-db",
     status_code=status.HTTP_200_OK,
     summary="Read json file with test menu structure and populate the database",
-    tags=["excel"],
+    tags=["Excel"],
 )
 async def read_and_populate(service: FileReportService = Depends(get_report_service)):
     await service.read_and_populate()
