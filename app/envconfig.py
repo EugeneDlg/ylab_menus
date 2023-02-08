@@ -16,11 +16,14 @@ TEST_DB_USER = os.getenv("TEST_DB_USER")
 TEST_DB_PASSWORD = os.getenv("TEST_DB_PASSWORD")
 # DB_CONN_STRING_PRE = "postgresql+psycopg2"
 DB_CONN_STRING_PRE = "postgresql+asyncpg"
-DB_CONN_STRING = f"{DB_CONN_STRING_PRE}://{DB_USER}:{DB_PASSWORD}@" \
-                 f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
-TEST_DB_CONN_STRING = f"{DB_CONN_STRING_PRE}://{TEST_DB_USER}:" \
-                      f"{TEST_DB_PASSWORD}@{TEST_DB_HOST}:" \
-                      f"{DB_PORT}/{TEST_DB_NAME}"
+DB_CONN_STRING = (
+    f"{DB_CONN_STRING_PRE}://{DB_USER}:{DB_PASSWORD}@" f"{DB_HOST}:{DB_PORT}/{DB_NAME}"
+)
+TEST_DB_CONN_STRING = (
+    f"{DB_CONN_STRING_PRE}://{TEST_DB_USER}:"
+    f"{TEST_DB_PASSWORD}@{TEST_DB_HOST}:"
+    f"{DB_PORT}/{TEST_DB_NAME}"
+)
 REDIS_HOST = os.getenv("REDIS_HOST")
 REDIS_PORT = int(os.getenv("REDIS_PORT", 6379))
 REDIS_DB = int(os.getenv("REDIS_DB", 0))

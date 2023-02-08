@@ -1,6 +1,6 @@
 import json
 
-import aiofiles
+import aiofiles  # type: ignore
 from celery.result import AsyncResult
 from fastapi import Depends
 
@@ -15,39 +15,39 @@ class MenuService:
 
     async def add_menu(self, menu: dict):
         menu = await MenuDB(self.session).add_menu(menu)
-        await delete_cache("list::")
+        await delete_cache("menu_list::")
         return menu
 
     async def get_menu(self, menu_id: int):
-        menu = await get_cache(f"{menu_id}::")
+        menu = await get_cache(f"menu_{menu_id}::")
         if menu is None:
             menu_t = await MenuDB(self.session).get_menu(menu_id)
             if menu_t is not None:
                 menu = add_counts_to_menu(menu_t)
-                await set_cache(f"{menu_id}::", menu)
+                await set_cache(f"menu_{menu_id}::", menu)
         return menu
 
     async def get_menu_list(self):
-        menu_list = await get_cache("list::")
+        menu_list = await get_cache("menu_list::")
         if menu_list is None:
             menu_list = await MenuDB(self.session).get_menu_list()
             menus_with_counts = []
             for e in menu_list:
                 menus_with_counts.append(add_counts_to_menu(e))
             menu_list = menus_with_counts
-            await set_cache("list::", menu_list)
+            await set_cache("menu_list::", menu_list)
         return menu_list
 
     async def update_menu(self, menu_id: int, menu: dict):
         menu = await MenuDB(self.session).update_menu(menu_id, menu)
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}::")
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}::")
         return menu
 
     async def delete_menu(self, menu_id: int):
         response = await MenuDB(self.session).delete_menu(menu_id)
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}:", True)
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}:", True)
         return response
 
 
@@ -57,47 +57,45 @@ class SubmenuService:
 
     async def add_submenu(self, menu_id: int, submenu: dict):
         menu = await SubmenuDB(self.session).add_submenu(menu_id, submenu)
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}::")
-        await delete_cache(f"{menu_id}:list:")
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}::")
+        await delete_cache(f"menu_{menu_id}:submenu_list:")
         return menu
 
     async def get_submenu(self, menu_id: int, submenu_id: int):
-        submenu = await get_cache(f"{menu_id}:{submenu_id}:")
+        submenu = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
         if submenu is None:
             submenu_t = await SubmenuDB(self.session).get_submenu(menu_id, submenu_id)
             if submenu_t is not None:
                 submenu = add_counts_to_submenu(submenu_t)
-                await set_cache(f"{menu_id}:{submenu_id}:", submenu)
+                await set_cache(f"menu_{menu_id}:submenu_{submenu_id}:", submenu)
         return submenu
 
     async def get_submenu_list(self, menu_id: int):
-        submenu_list = await get_cache(f"{menu_id}:list:")
+        submenu_list = await get_cache(f"menu_{menu_id}:submenu_list:")
         if submenu_list is None:
             submenu_list = await SubmenuDB(self.session).get_submenu_list(menu_id)
             submenus_with_counts = []
             for e in submenu_list:
                 submenus_with_counts.append(add_counts_to_submenu(e))
             submenu_list = submenus_with_counts
-            await set_cache(f"{menu_id}:list:", submenu_list)
+            await set_cache(f"menu_{menu_id}:submenu_list:", submenu_list)
         return submenu_list
 
     async def update_submenu(self, menu_id: int, submenu_id: int, submenu: dict):
         submenu = await SubmenuDB(self.session).update_submenu(
             menu_id, submenu_id, submenu
         )
-        await delete_cache(f"{menu_id}:list:")
-        await delete_cache(f"{menu_id}:{submenu_id}:")
+        await delete_cache(f"menu_{menu_id}:submenu_list:")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
         return submenu
 
     async def delete_submenu(self, menu_id: int, submenu_id: int):
-        response = await SubmenuDB(self.session).delete_submenu(
-            menu_id, submenu_id
-        )
-        await delete_cache(f"{menu_id}::")
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}:{submenu_id}:", True)
-        await delete_cache(f"{menu_id}:list:")
+        response = await SubmenuDB(self.session).delete_submenu(menu_id, submenu_id)
+        await delete_cache(f"menu_{menu_id}::")
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:", True)
+        await delete_cache(f"menu_{menu_id}:submenu_list:")
         return response
 
 
@@ -106,54 +104,50 @@ class DishService:
         self.session = session
 
     async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
-        dish = await DishDB(self.session).add_dish(
-            menu_id, submenu_id, dish
-        )
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}::")
-        await delete_cache(f"{menu_id}:list:")
-        await delete_cache(f"{menu_id}:{submenu_id}:")
-        await delete_cache(f"{menu_id}:{submenu_id}:list")
+        dish = await DishDB(self.session).add_dish(menu_id, submenu_id, dish)
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}::")
+        await delete_cache(f"menu_{menu_id}:submenu_list:")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
         return dish
 
     async def get_dish(self, menu_id: int, submenu_id: int, dish_id: int):
-        dish = await get_cache(f"{menu_id}:{submenu_id}:{dish_id}")
+        dish = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
         if dish is None:
-            dish = await DishDB(self.session).get_dish(
-                menu_id, submenu_id, dish_id
-            )
+            dish = await DishDB(self.session).get_dish(menu_id, submenu_id, dish_id)
             if dish is not None:
-                await set_cache(f"{menu_id}:{submenu_id}:{dish_id}", dish)
+                await set_cache(
+                    f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}", dish
+                )
         return dish
 
     async def get_dish_list(self, menu_id, submenu_id):
-        dish_list = await get_cache(f"{menu_id}:{submenu_id}:list")
+        dish_list = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
         if dish_list is None:
-            dish_list = await DishDB(self.session).get_dish_list(
-                menu_id, submenu_id
-            )
+            dish_list = await DishDB(self.session).get_dish_list(menu_id, submenu_id)
             if dish_list is not None:
-                await set_cache(f"{menu_id}:{submenu_id}:list:", dish_list)
+                await set_cache(
+                    f"menu_{menu_id}:submenu_{submenu_id}:dish_list", dish_list
+                )
         return dish_list
 
     async def update_dish(self, menu_id: int, submenu_id, dish_id: int, dish: dict):
         dish = await DishDB(self.session).update_dish(
             menu_id, submenu_id, dish_id, dish
         )
-        await delete_cache(f"{menu_id}:{submenu_id}:list")
-        await delete_cache(f"{menu_id}:{submenu_id}:{dish_id}")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
         return dish
 
     async def delete_dish(self, menu_id: int, submenu_id, dish_id: int):
-        response = await DishDB(self.session).delete_dish(
-            menu_id, submenu_id, dish_id
-        )
-        await delete_cache(f"{menu_id}::")
-        await delete_cache("list::")
-        await delete_cache(f"{menu_id}:{submenu_id}:")
-        await delete_cache(f"{menu_id}:list:")
-        await delete_cache(f"{menu_id}:{submenu_id}:{dish_id}")
-        await delete_cache(f"{menu_id}:{submenu_id}:list")
+        response = await DishDB(self.session).delete_dish(menu_id, submenu_id, dish_id)
+        await delete_cache(f"menu_{menu_id}::")
+        await delete_cache("menu_list::")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        await delete_cache(f"menu_{menu_id}:submenu_list:")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
+        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
         return response
 
 
@@ -183,21 +177,33 @@ class FileReportService:
                 continue
             menu_id = item[0].id
             if len(all_menus) == 0 or all_menus[-1]["id"] != menu_id:
-                menu = {"id": item[0].id, "title": item[0].title,
-                        "description": item[0].description, "submenus": []}
+                menu = {
+                    "id": item[0].id,
+                    "title": item[0].title,
+                    "description": item[0].description,
+                    "submenus": [],
+                }
                 all_menus.append(menu)
             if item[1] is None:
                 continue
             submenu_id = item[1].id
             submenu_ = all_menus[-1]["submenus"]
             if len(submenu_) == 0 or submenu_[-1]["id"] != submenu_id:
-                submenu = {"id": item[1].id, "title": item[1].title,
-                           "description": item[1].description, "dishes": []}
+                submenu = {
+                    "id": item[1].id,
+                    "title": item[1].title,
+                    "description": item[1].description,
+                    "dishes": [],
+                }
                 all_menus[-1]["submenus"].append(submenu)
             if item[2] is None:
                 continue
-            dish = {"id": item[2].id, "title": item[2].title,
-                    "description": item[2].description, "price": float(item[2].price)}
+            dish = {
+                "id": item[2].id,
+                "title": item[2].title,
+                "description": item[2].description,
+                "price": float(item[2].price),
+            }
             all_menus[-1]["submenus"][-1]["dishes"].append(dish)
         return all_menus
 

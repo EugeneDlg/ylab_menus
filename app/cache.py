@@ -21,7 +21,7 @@ async def set_cache(key, value):
 async def delete_cache(key, bulk=False):
     if bulk:
         prefix = key
-        cur = b'0'  # set initial cursor to 0
+        cur = b"0"  # set initial cursor to 0
         while cur:
             cur, keys = await cache.scan(cur, match=f"{prefix}*")
             for key in keys:

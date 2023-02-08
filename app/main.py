@@ -14,7 +14,7 @@ app = FastAPI(
     openapi_url="/api/openapi.json",
 )
 
-app.include_router(router=router, prefix='/api/v1/menus')
+app.include_router(router=router, prefix="/api/v1/menus")
 
 
 @app.on_event("shutdown")
@@ -26,7 +26,7 @@ async def on_shutdown():
 
 @app.get("/")
 async def homepage():
-    return JSONResponse({'message': 'This is a restaurant menu system'})
+    return JSONResponse({"message": "This is a restaurant menu system"})
 
 
 if __name__ == "__main__":

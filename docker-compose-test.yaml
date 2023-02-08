@@ -8,8 +8,7 @@ services:
       - .env
     environment:
       - TEST_MODE=1
-    entrypoint: >
-      sh -c 'pytest -vv'
+    entrypoint: sh -c 'alembic upgrade head && pytest -vv'
     networks:
       - resto_test_network
     ports:

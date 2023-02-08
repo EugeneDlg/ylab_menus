@@ -76,7 +76,7 @@ def run_migrations_online() -> None:
 
     """
     config_ = config.get_section(config.config_ini_section)
-    config_['sqlalchemy.url'] = get_db_conn_URL()
+    config_["sqlalchemy.url"] = get_db_conn_URL()
     connectable = engine_from_config(
         config_,
         prefix="sqlalchemy.",
@@ -85,7 +85,8 @@ def run_migrations_online() -> None:
 
     with connectable.connect() as connection:
         context.configure(
-            connection=connection, target_metadata=target_metadata,
+            connection=connection,
+            target_metadata=target_metadata,
         )
 
         with context.begin_transaction():

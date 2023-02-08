@@ -15,8 +15,8 @@ celery_app = Celery("tasks", broker=RABBITMQ_URL, backend="rpc://")
 
 
 @celery_app.task
-def generate_xlsx_file(menu_data: list) -> None:
-    file_name = f"{datetime.now().strftime('%Y%m%d_%H-%M-%S')}.xlsx"
+def generate_xlsx_file(menu_data: list) -> dict:
+    file_name = f"{datetime.now().strftime('%Y%m%d--%H-%M-%S')}.xlsx"
     file_path = os.path.join("data", file_name)
     workbook = Workbook(file_path)
     worksheet = workbook.add_worksheet()

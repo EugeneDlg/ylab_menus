@@ -10,15 +10,11 @@ services:
       - .env
     environment:
       - TEST_MODE=0
-    entrypoint: >
-      sh -c "
-        python -m alembic upgrade head
-        python app/main.py
-      "
+    entrypoint: sh -c 'python -m alembic upgrade head && python app/main.py'
     networks:
       - resto_network
     volumes:
-      - celery-data:/usr/src/app/data
+      - celery-data:/app/data
     ports:
       - "8000:8000"
     depends_on:
