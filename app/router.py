@@ -344,7 +344,7 @@ async def get_xlsx_status(
         filename = result.result["file_name"]
         return {
             "status": True,
-            "message": f"Excel file is ready. You can download it here:"
+            "message": f"Excel file is ready. You can download it here: "
             f"{BASE_URL}/api/v1/menus/download/{filename}",
         }
     else:
