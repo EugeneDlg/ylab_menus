@@ -1,12 +1,15 @@
 import json
+import os
 
 import aiofiles  # type: ignore
 from celery.result import AsyncResult
 from fastapi import Depends
+from fastapi.responses import FileResponse
 
 from app.cache import delete_cache, get_cache, set_cache
 from app.celery.tasks import celery_app
 from app.db import DishDB, FileReportDB, MenuDB, SubmenuDB, get_session
+from app.envconfig import BASE_DIR
 
 
 class MenuService:
@@ -211,6 +214,40 @@ class FileReportService:
     async def get_xlsx_file_status(task_id: str) -> AsyncResult:
         result = celery_app.AsyncResult(id=task_id, app=celery_app)
         return result
+
+    @staticmethod
+    async def download_file(filename: str):
+        try:
+            os.stat(os.path.join(BASE_DIR, "data", f"{filename}"))
+        except FileNotFoundError:
+            return False
+        headers = {"Content-Disposition": f"attachment; filename={filename}"}
+        file_response = FileResponse(
+            path=os.path.join(BASE_DIR, "data", f"{filename}"),
+            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            headers=headers,
+        )
+        return file_response
+
+
+# @router.get(
+#     path="/download/{filename}",
+#     status_code=status.HTTP_200_OK,
+#     summary="Download file by filename",
+#     response_class=FileResponse,
+#     tags=["Excel"]
+# )
+# async def download_file(filename: str):
+#     headers = {"Content-Disposition": f"attachment; filename={filename}"}
+#     try:
+#         file_response = FileResponse(
+#             path=os.path.join(BASE_DIR, "data", f"{filename}"),
+#             media_type="multipart/form-data",
+#             headers=headers
+#         )
+#     except Exception:
+#         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail=f"File not found")
+#     return file_response
 
 
 async def get_menu_service(session: MenuDB = Depends(get_session)):

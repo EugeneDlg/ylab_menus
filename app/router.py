@@ -1,9 +1,7 @@
-import os
-
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.responses import FileResponse
 
-from app.envconfig import BASE_DIR
+from app.envconfig import BASE_URL
 from app.models import (
     DishModel,
     MenuModel,
@@ -333,10 +331,9 @@ async def make_xlsx_file(service: FileReportService = Depends(get_report_service
 
 
 @router.get(
-    "/get-excel-file/{task_id}",
+    "/get-task-status/{task_id}",
     status_code=status.HTTP_200_OK,
-    response_class=FileResponse,
-    summary="Prepared Excel file downloading or display a status of the task",
+    summary="Display a status of the task and the link for to download the file",
     tags=["Excel"],
 )
 async def get_xlsx_status(
@@ -345,13 +342,30 @@ async def get_xlsx_status(
     result = await service.get_xlsx_file_status(task_id)
     if result.ready():
         filename = result.result["file_name"]
-        headers = {"Content-Disposition": f"attachment; filename={filename}"}
-        return FileResponse(
-            path=os.path.join(BASE_DIR, "data", f"{filename}"),
-            media_type="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-            headers=headers,
-        )
+        return {
+            "status": True,
+            "message": f"Excel file is ready. You can download it here:"
+            f"{BASE_URL}/api/v1/menus/download/{filename}",
+        }
     else:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Task not found"
+        )
+
+
+@router.get(
+    path="/download/{filename}",
+    status_code=status.HTTP_200_OK,
+    summary="Download file by filename",
+    response_class=FileResponse,
+    tags=["Excel"],
+)
+async def download_file(
+    filename: str, service: FileReportService = Depends(get_report_service)
+):
+    response = await service.download_file(filename)
+    if not response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="File not found"
         )
+    return response
