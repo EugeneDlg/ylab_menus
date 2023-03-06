@@ -6,166 +6,183 @@ from celery.result import AsyncResult
 from fastapi import Depends
 from fastapi.responses import FileResponse
 
-from app.cache import delete_cache, get_cache, set_cache
+from app.cache import get_cache
 from app.celery.tasks import celery_app
-from app.db import DishDB, FileReportDB, MenuDB, SubmenuDB, get_session
+from app.db import DishDB, FileReportDB, MenuDB, SubmenuDB, get_db_session
 from app.envconfig import BASE_DIR
 
 
 class MenuService:
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, db_session, cache):
+        self.db_session = db_session
+        self.cache = cache
 
     async def add_menu(self, menu: dict):
-        menu = await MenuDB(self.session).add_menu(menu)
-        await delete_cache("menu_list::")
+        menu = await MenuDB(self.db_session).add_menu(menu)
+        await self.cache.delete_cache("menu_list::")
         return menu
 
     async def get_menu(self, menu_id: int):
-        menu = await get_cache(f"menu_{menu_id}::")
+        menu = await self.cache.get_cache(f"menu_{menu_id}::")
         if menu is None:
-            menu_t = await MenuDB(self.session).get_menu(menu_id)
+            menu_t = await MenuDB(self.db_session).get_menu(menu_id)
             if menu_t is not None:
                 menu = add_counts_to_menu(menu_t)
-                await set_cache(f"menu_{menu_id}::", menu)
+                await self.cache.set_cache(f"menu_{menu_id}::", menu)
         return menu
 
     async def get_menu_list(self):
-        menu_list = await get_cache("menu_list::")
+        menu_list = await self.cache.get_cache("menu_list::")
         if menu_list is None:
-            menu_list = await MenuDB(self.session).get_menu_list()
+            menu_list = await MenuDB(self.db_session).get_menu_list()
             menus_with_counts = []
             for e in menu_list:
                 menus_with_counts.append(add_counts_to_menu(e))
             menu_list = menus_with_counts
-            await set_cache("menu_list::", menu_list)
+            await self.cache.set_cache("menu_list::", menu_list)
         return menu_list
 
     async def update_menu(self, menu_id: int, menu: dict):
-        menu = await MenuDB(self.session).update_menu(menu_id, menu)
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}::")
+        menu = await MenuDB(self.db_session).update_menu(menu_id, menu)
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}::")
         return menu
 
     async def delete_menu(self, menu_id: int):
-        response = await MenuDB(self.session).delete_menu(menu_id)
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}:", True)
+        response = await MenuDB(self.db_session).delete_menu(menu_id)
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}:", True)
         return response
 
 
 class SubmenuService:
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, session, cache):
+        self.db_session = session
+        self.cache = cache
 
     async def add_submenu(self, menu_id: int, submenu: dict):
-        menu = await SubmenuDB(self.session).add_submenu(menu_id, submenu)
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}::")
-        await delete_cache(f"menu_{menu_id}:submenu_list:")
+        menu = await SubmenuDB(self.db_session).add_submenu(menu_id, submenu)
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}::")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_list:")
         return menu
 
     async def get_submenu(self, menu_id: int, submenu_id: int):
-        submenu = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        submenu = await self.cache.get_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
         if submenu is None:
-            submenu_t = await SubmenuDB(self.session).get_submenu(menu_id, submenu_id)
+            submenu_t = await SubmenuDB(self.db_session).get_submenu(
+                menu_id, submenu_id
+            )
             if submenu_t is not None:
                 submenu = add_counts_to_submenu(submenu_t)
-                await set_cache(f"menu_{menu_id}:submenu_{submenu_id}:", submenu)
+                await self.cache.set_cache(
+                    f"menu_{menu_id}:submenu_{submenu_id}:", submenu
+                )
         return submenu
 
     async def get_submenu_list(self, menu_id: int):
-        submenu_list = await get_cache(f"menu_{menu_id}:submenu_list:")
+        submenu_list = await self.cache.get_cache(f"menu_{menu_id}:submenu_list:")
         if submenu_list is None:
-            submenu_list = await SubmenuDB(self.session).get_submenu_list(menu_id)
+            submenu_list = await SubmenuDB(self.db_session).get_submenu_list(menu_id)
             submenus_with_counts = []
             for e in submenu_list:
                 submenus_with_counts.append(add_counts_to_submenu(e))
             submenu_list = submenus_with_counts
-            await set_cache(f"menu_{menu_id}:submenu_list:", submenu_list)
+            await self.cache.set_cache(f"menu_{menu_id}:submenu_list:", submenu_list)
         return submenu_list
 
     async def update_submenu(self, menu_id: int, submenu_id: int, submenu: dict):
-        submenu = await SubmenuDB(self.session).update_submenu(
+        submenu = await SubmenuDB(self.db_session).update_submenu(
             menu_id, submenu_id, submenu
         )
-        await delete_cache(f"menu_{menu_id}:submenu_list:")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_list:")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
         return submenu
 
     async def delete_submenu(self, menu_id: int, submenu_id: int):
-        response = await SubmenuDB(self.session).delete_submenu(menu_id, submenu_id)
-        await delete_cache(f"menu_{menu_id}::")
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:", True)
-        await delete_cache(f"menu_{menu_id}:submenu_list:")
+        response = await SubmenuDB(self.db_session).delete_submenu(menu_id, submenu_id)
+        await self.cache.delete_cache(f"menu_{menu_id}::")
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:", True)
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_list:")
         return response
 
 
 class DishService:
-    def __init__(self, session):
-        self.session = session
+    def __init__(self, session, cache):
+        self.db_session = session
+        self.cache = cache
 
     async def add_dish(self, menu_id: int, submenu_id: int, dish: dict):
-        dish = await DishDB(self.session).add_dish(menu_id, submenu_id, dish)
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}::")
-        await delete_cache(f"menu_{menu_id}:submenu_list:")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
+        dish = await DishDB(self.db_session).add_dish(menu_id, submenu_id, dish)
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}::")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_list:")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
         return dish
 
     async def get_dish(self, menu_id: int, submenu_id: int, dish_id: int):
-        dish = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
+        dish = await self.cache.get_cache(
+            f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}"
+        )
         if dish is None:
-            dish = await DishDB(self.session).get_dish(menu_id, submenu_id, dish_id)
+            dish = await DishDB(self.db_session).get_dish(menu_id, submenu_id, dish_id)
             if dish is not None:
-                await set_cache(
+                await self.cache.set_cache(
                     f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}", dish
                 )
         return dish
 
     async def get_dish_list(self, menu_id, submenu_id):
-        dish_list = await get_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
+        dish_list = await self.cache.get_cache(
+            f"menu_{menu_id}:submenu_{submenu_id}:dish_list"
+        )
         if dish_list is None:
-            dish_list = await DishDB(self.session).get_dish_list(menu_id, submenu_id)
+            dish_list = await DishDB(self.db_session).get_dish_list(menu_id, submenu_id)
             if dish_list is not None:
-                await set_cache(
+                await self.cache.set_cache(
                     f"menu_{menu_id}:submenu_{submenu_id}:dish_list", dish_list
                 )
         return dish_list
 
     async def update_dish(self, menu_id: int, submenu_id, dish_id: int, dish: dict):
-        dish = await DishDB(self.session).update_dish(
+        dish = await DishDB(self.db_session).update_dish(
             menu_id, submenu_id, dish_id, dish
         )
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
+        await self.cache.delete_cache(
+            f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}"
+        )
         return dish
 
     async def delete_dish(self, menu_id: int, submenu_id, dish_id: int):
-        response = await DishDB(self.session).delete_dish(menu_id, submenu_id, dish_id)
-        await delete_cache(f"menu_{menu_id}::")
-        await delete_cache("menu_list::")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
-        await delete_cache(f"menu_{menu_id}:submenu_list:")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}")
-        await delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
+        response = await DishDB(self.db_session).delete_dish(
+            menu_id, submenu_id, dish_id
+        )
+        await self.cache.delete_cache(f"menu_{menu_id}::")
+        await self.cache.delete_cache("menu_list::")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:")
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_list:")
+        await self.cache.delete_cache(
+            f"menu_{menu_id}:submenu_{submenu_id}:dish_{dish_id}"
+        )
+        await self.cache.delete_cache(f"menu_{menu_id}:submenu_{submenu_id}:dish_list")
         return response
 
 
 class FileReportService:
     def __init__(self, session):
-        self.session = session
+        self.db_session = session
 
     async def read_and_populate(self):
         async with aiofiles.open("test_menu.json", mode="r") as f:
             content = await f.read()
         all_structure = json.loads(content)
-        await FileReportDB(self.session).create_menu_structure(all_structure)
+        await FileReportDB(self.db_session).create_menu_structure(all_structure)
 
     async def make_xlsx_file(self):
-        menu_list = await FileReportDB(self.session).get_all_items()
+        menu_list = await FileReportDB(self.db_session).get_all_items()
         menu_data = self.serialize(menu_list)
         result = celery_app.send_task(
             "tasks.generate_xlsx_file", kwargs={"menu_data": menu_data}
@@ -230,19 +247,25 @@ class FileReportService:
         return file_response
 
 
-async def get_menu_service(session: MenuDB = Depends(get_session)):
-    return MenuService(session)
+async def get_menu_service(
+    db_session: MenuDB = Depends(get_db_session), cache=Depends(get_cache)
+):
+    return MenuService(db_session, cache)
 
 
-async def get_submenu_service(session: SubmenuDB = Depends(get_session)):
-    return SubmenuService(session)
+async def get_submenu_service(
+    db_session: SubmenuDB = Depends(get_db_session), cache=Depends(get_cache)
+):
+    return SubmenuService(db_session, cache)
 
 
-async def get_dish_service(session: DishDB = Depends(get_session)):
-    return DishService(session)
+async def get_dish_service(
+    db_session: DishDB = Depends(get_db_session), cache=Depends(get_cache)
+):
+    return DishService(db_session, cache)
 
 
-async def get_report_service(session: FileReportDB = Depends(get_session)):
+async def get_report_service(session: FileReportDB = Depends(get_db_session)):
     return FileReportService(session)
 
 
