@@ -1,4 +1,8 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
+
+
+def price_format(price: float) -> str:
+    return f"{price:.2f}"
 
 
 class BaseRestaurantModel(BaseModel):
@@ -23,7 +27,9 @@ class ResponseSubmenuModel(ResponseBaseRestaurantModel):
 
 
 class ResponseDishModel(ResponseBaseRestaurantModel):
-    price: str
+    price: float
+
+    _normalize_price = validator("price", allow_reuse=True)(price_format)
 
 
 class MenuModel(BaseRestaurantModel):
@@ -36,6 +42,10 @@ class SubmenuModel(BaseRestaurantModel):
 
 class DishModel(BaseRestaurantModel):
     price: float
+
+    # _normalize_price = validator(
+    #     "price",
+    #     allow_reuse=True)(price_format)
 
 
 class UpdateRestaurantModel(BaseModel):
@@ -56,3 +66,7 @@ class UpdateSubmenuModel(UpdateRestaurantModel):
 
 class UpdateDishModel(UpdateRestaurantModel):
     price: float | None
+
+    # _normalize_price = validator(
+    #     "price",
+    #     allow_reuse=True)(price_format)

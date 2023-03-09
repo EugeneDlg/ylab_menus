@@ -3,7 +3,7 @@ from fastapi import FastAPI
 from starlette.responses import JSONResponse
 
 from app.cache import Cache
-from app.db import clean_tables, create_tables, delete_tables
+from app.db import clean_tables
 from app.router import router
 
 app = FastAPI(
@@ -21,12 +21,12 @@ app.include_router(router=router, prefix="/api/v1/menus")
 async def on_shutdown():
     await Cache().clean_cache()
     await clean_tables()
-    await delete_tables()
+    # await delete_tables()
 
 
-@app.on_event("startup")
-async def on_startup():
-    await create_tables()
+# @app.on_event("startup")
+# async def on_startup():
+#     await create_tables()
 
 
 @app.get("/")

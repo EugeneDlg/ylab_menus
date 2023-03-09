@@ -26,7 +26,6 @@ async def get_db_session() -> AsyncGenerator:
     try:
         Session: AsyncSession = sessionmaker(
             bind=engine,
-            # autoflush=False,
             expire_on_commit=False,
             class_=AsyncSession,
         )
@@ -86,17 +85,19 @@ class MenuDB:
             menu_.description = (
                 menu["description"] if menu["description"] else menu_.description
             )
-        async with self.Session.begin() as session:
-            session.add(menu_)
-        return menu_
+            async with self.Session.begin() as session:
+                session.add(menu_)
+            return menu_
+        return None
 
     async def delete_menu(self, menu_id: int) -> bool:
         menu_t = await self.get_menu(menu_id)
         if menu_t is not None:
             menu = menu_t[0]
-        async with self.Session.begin() as session:
-            await session.delete(menu)
-        return True
+            async with self.Session.begin() as session:
+                await session.delete(menu)
+            return True
+        return None
 
 
 class SubmenuDB:
@@ -314,8 +315,12 @@ async def delete_tables():
         await session.run_sync(Base.metadata.drop_all)
 
 
+TABLES = ["menu", "submenu", "dish"]
+
+
 async def clean_tables():
     async with engine.connect() as conn:
-        breakpoint()
         await conn.execute(text("TRUNCATE TABLE menu CASCADE;"))
+        for table in TABLES:
+            await conn.execute(text(f"ALTER SEQUENCE {table}_id_seq RESTART WITH 1"))
         await conn.commit()
